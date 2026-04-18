@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "WebSearch",
+      "WebFetch(domain:ieeexplore.ieee.org)",
+      "WebFetch(domain:arxiv.org)",
+      "WebFetch(domain:www.mdpi.com)",
+      "WebFetch(domain:www.sciencedirect.com)",
+      "WebFetch(domain:www.semanticscholar.org)",
+      "WebFetch(domain:onlinelibrary.wiley.com)",
+      "WebFetch(domain:www.academia.edu)",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "WebFetch(domain:monterey26.oceansconference.org)",
+      "WebFetch(domain:scholar.google.com)",
+      "WebFetch(domain:nps.edu)",
+      "WebFetch(domain:cohrint.info)",
+      "WebFetch(domain:www.colorado.edu)",
+      "WebFetch(domain:zachary.sunberg.net)"
+    ]
+  }
+}

@@ -27,9 +27,9 @@
 \begin{abstract}
 Effective low-level feedback control of small underactuated uncrewed surface
 vehicles (USVs), specifically vessels under seven meters with a single thruster
-and rudder, requires dynamic models that provide actionable design insight, not
-predictive accuracy alone. Tow-tank testing is impractical at this scale;
-parameters must be identified from limited field trials. Existing system
+and rudder, requires dynamic models that provide both actionable design insight and 
+predictive accuracy. Tow-tank testing is impractical at this scale;
+parameters must be identified solely from limited field trials. Existing system
 identification literature largely pursues model fidelity as an end in itself,
 producing representations whose complexity can obscure which aspects of the
 dynamics are structurally significant for compensator design.
@@ -46,7 +46,7 @@ used collectively: simple models anchor human intuition; structured nonlinear mo
 expose which terms are dynamically salient; and the black-box model bounds the
 benefit of added complexity.
 
-Preliminary results from field step-response experiments demonstrate the approach.
+Preliminary results from step-response field experiments demonstrate the approach.
 First-order SISO models achieve R2=0.93 (surge, tau=1.95 s) and R2=0.83
 (yaw rate, tau=0.47 s), providing direct controller tuning parameters.
 Cross-model diagnostics identify quadratic drag as the dominant surge nonlinearity
