@@ -1,0 +1,128 @@
+% ── Foundational ────────────────────────────────────────────────────────────
+
+@book{box1987empirical,
+  author    = {Box, George E. P. and Draper, Norman R.},
+  title     = {Empirical Model Building and Response Surfaces},
+  publisher = {Wiley},
+  year      = {1987},
+  note      = {Source of the aphorism ``all models are wrong, but some are useful''}
+}
+
+@book{fossen2011handbook,
+  author    = {Fossen, Thor I.},
+  title     = {Handbook of Marine Craft Hydrodynamics and Motion Control},
+  publisher = {Wiley},
+  year      = {2011},
+  doi       = {10.1002/9781119994138}
+}
+
+@article{nomoto1957steering,
+  author  = {Nomoto, Kensaku and Taguchi, T. and Honda, K. and Hirano, S.},
+  title   = {On the Steering Qualities of Ships},
+  journal = {International Shipbuilding Progress},
+  volume  = {4},
+  number  = {35},
+  pages   = {354--370},
+  year    = {1957}
+}
+
+% ── USV Modeling and System Identification ───────────────────────────────────
+
+@article{sonnenburg2013modeling,
+  author  = {Sonnenburg, Christian R. and Woolsey, Craig A.},
+  title   = {Modeling, Identification, and Control of an Unmanned Surface Vehicle},
+  journal = {Journal of Field Robotics},
+  volume  = {30},
+  number  = {3},
+  pages   = {371--398},
+  year    = {2013},
+  doi     = {10.1002/rob.21452},
+  note    = {Compares model hierarchy from 3-DOF nonlinear to Nomoto first-order;
+             finds first-order steering model best compromise at higher speeds}
+}
+
+@inproceedings{sonnenburg2010control,
+  author    = {Sonnenburg, Christian R. and Woolsey, Craig A.},
+  title     = {Control-Oriented Planar Motion Modeling of Unmanned Surface Vehicles},
+  booktitle = {OCEANS 2010 IEEE -- Sydney},
+  year      = {2010},
+  doi       = {10.1109/OCEANSSYD.2010.5664297}
+}
+
+@inproceedings{wang2021modeling,
+  author    = {Wang, Ning and others},
+  title     = {Modeling and Identification of an Unmanned Surface Vehicle Based on
+               Sea Trials Data},
+  booktitle = {2020 Chinese Automation Congress (CAC)},
+  year      = {2020},
+  doi       = {10.1109/CAC51299.2020.9318288},
+  note      = {3-DOF nonlinear model identified from sea trials for control}
+}
+
+@inproceedings{caharija2017approach,
+  author    = {Caharija, Walter and others},
+  title     = {An Approach for System Identification in Unmanned Surface Vehicles},
+  booktitle = {OCEANS 2017 -- Aberdeen},
+  year      = {2017},
+  doi       = {10.1109/OCEANSE.2017.8204440}
+}
+
+% ── Data-Driven and ML Approaches ───────────────────────────────────────────
+
+@article{woo2018dynamic,
+  author  = {Woo, Joohyun and Park, Jongyoung and Yu, Chanwoo and Kim, Nakwan},
+  title   = {Dynamic Model Identification of Unmanned Surface Vehicles Using
+             Deep Learning Network},
+  journal = {Applied Ocean Research},
+  volume  = {78},
+  pages   = {123--133},
+  year    = {2018},
+  doi     = {10.1016/j.apor.2018.06.011},
+  note    = {LSTM-RNN reduces surge error 76.9\% and yaw-rate error 60.7\%
+             over linear models; no closed-loop simulation evaluation}
+}
+
+@article{xu2022pinn,
+  author  = {Xu, Pengfei and Han, Chenbo and Cheng, Hongxia and
+             Cheng, Chen and Ge, Tong},
+  title   = {A Physics-Informed Neural Network for the Prediction of
+             Unmanned Surface Vehicle Dynamics},
+  journal = {Journal of Marine Science and Engineering},
+  volume  = {10},
+  number  = {2},
+  pages   = {148},
+  year    = {2022},
+  doi     = {10.3390/jmse10020148},
+  note    = {PINN combining physical 3-DOF structure with data-driven learning;
+             better generalization than pure NN with small training sets}
+}
+
+@misc{tanveer2023yaw,
+  author       = {Tanveer, Ahsan and Ahmad, Sarvat Mushtaq},
+  title        = {Unmanned Surface Vehicle: Yaw Modeling and Identification},
+  year         = {2023},
+  howpublished = {arXiv:2303.13064},
+  url          = {https://arxiv.org/abs/2303.13064},
+  note         = {Linear second-order yaw model identified from pool trials}
+}
+
+% ── Control of Underactuated USVs ───────────────────────────────────────────
+
+@inproceedings{sarda2016nmpc,
+  author    = {Sarda, Eric I. and Qu, Hao and Bertaska, Ivan R. and von Ellenrieder, Karl D.},
+  title     = {Station-Keeping Control of an Unmanned Surface Vehicle Exposed
+               to Current and Wind Disturbances},
+  booktitle = {OCEANS 2016 MTS/IEEE Monterey},
+  year      = {2016},
+  doi       = {10.1109/OCEANS.2016.7761197}
+}
+
+@article{liu2016survey,
+  author  = {Liu, Zhixiang and Zhang, Youmin and Yu, Xiang and Yuan, Chi},
+  title   = {Unmanned Surface Vehicles: An Overview of Developments and Challenges},
+  journal = {Annual Reviews in Control},
+  volume  = {41},
+  pages   = {71--93},
+  year    = {2016},
+  doi     = {10.1016/j.arcontrol.2016.04.018}
+}
