@@ -7,3 +7,17 @@
 *.log
 *.out
 *.synctex.gz
+*.synctex(busy)
+*.toc
+*.lof
+*.lot
+*.idx
+*.ind
+*.ilg
+*.nav
+*.snm
+*.vrb
+*.bcf
+*.run.xml
+*.xdv
+_minted-*/
