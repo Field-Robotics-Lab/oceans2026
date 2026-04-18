@@ -26,35 +26,35 @@
 
 % ── Abstract ─────────────────────────────────────────────────────────────────
 \begin{abstract}
-Effective low-level feedback control of small, underactuated uncrewed surface
-vehicles (USVs) --- vessels under seven meters with a single thruster and rudder
---- requires dynamic models that provide actionable design insight, not predictive
-accuracy alone. Tow-tank testing is impractical at this scale; parameters must be
-identified from limited field trials. Existing system identification literature
-largely pursues model fidelity as an end in itself, producing representations whose
-complexity can obscure which aspects of the dynamics are structurally significant
-for compensator design.
+Effective low-level feedback control of small underactuated uncrewed surface
+vehicles (USVs), specifically vessels under seven meters with a single thruster
+and rudder, requires dynamic models that provide actionable design insight, not
+predictive accuracy alone. Tow-tank testing is impractical at this scale;
+parameters must be identified from limited field trials. Existing system
+identification literature largely pursues model fidelity as an end in itself,
+producing representations whose complexity can obscure which aspects of the
+dynamics are structurally significant for compensator design.
 
 We propose a methodology built around a deliberate spectrum of three model levels,
-each identified from the same experimental data: (1)~first-order, linear,
-single-input single-output (SISO) transfer functions --- Nomoto-style models for
+each identified from the same experimental data: (1) first-order, linear,
+single-input single-output (SISO) transfer functions, Nomoto-style models for
 surge and yaw that are immediately interpretable and support controller architecture
 intuition, but risk oversimplification when considered in isolation;
-(2)~a physics-based nonlinear state-space formulation incorporating quadratic
-hydrodynamic drag; and (3)~a Nonlinear AutoRegressive with eXogenous inputs (NARX)
+(2) a physics-based nonlinear state-space formulation incorporating quadratic
+hydrodynamic drag; and (3) a Nonlinear AutoRegressive with eXogenous inputs (NARX)
 multilayer perceptron. Rather than seeking a single best model, the spectrum is
 used collectively: simple models anchor human intuition; structured nonlinear models
 expose which terms are dynamically salient; and the black-box model bounds the
 benefit of added complexity.
 
-Preliminary results from a step-response trial demonstrate the approach. First-order
-SISO models achieve $R^2{=}0.93$ (surge, $\tau{=}1.95$~s) and $R^2{=}0.83$
-(yaw~rate, $\tau{=}0.47$~s), providing direct controller tuning parameters.
+Preliminary results from field step-response experiments demonstrate the approach.
+First-order SISO models achieve R2=0.93 (surge, tau=1.95 s) and R2=0.83
+(yaw rate, tau=0.47 s), providing direct controller tuning parameters.
 Cross-model diagnostics identify quadratic drag as the dominant surge nonlinearity
-and reveal that speed-dependent rudder effectiveness --- a key coupling for
-underactuated control design --- is not resolvable from a single short trial,
+and reveal that speed-dependent rudder effectiveness, a key coupling for
+underactuated control design, is not resolvable from a single short trial,
 motivating targeted data collection. The NARX model matches one-step prediction
-accuracy ($R^2{=}0.93$) but diverges in closed-loop simulation, demonstrating that
+accuracy (R2=0.93) but diverges in closed-loop simulation, demonstrating that
 physical structure provides essential regularization under limited data. A
 comprehensive dataset spanning multiple operating regimes is being collected to
 evaluate the full methodology.
