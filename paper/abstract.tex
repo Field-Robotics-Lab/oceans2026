@@ -22,9 +22,12 @@ vehicles (USVs), specifically vessels under seven meters with a single thruster
 and rudder, requires dynamic models that provide both actionable design insight and
 predictive accuracy. Tow-tank testing is impractical at this scale;
 parameters must be identified solely from limited field trials. Existing system
-identification literature largely pursues model fidelity as an end in itself,
-producing representations whose complexity can obscure which aspects of the
-dynamics are structurally significant for compensator design.
+identification methods span a wide range of model complexity but offer little
+guidance on how much fidelity is enough, because sufficiency is only meaningful
+relative to a stated purpose. Absent that specification, the default is a bias
+toward more fidelity, since the benefit of an added term is readily quantified
+while its costs in identifiability, experimental burden and obscured design
+insight are not.
 
 We propose a methodology built around a deliberate spectrum of three model levels,
 each identified from the same experimental data: (1) first-order, linear,
@@ -44,10 +47,12 @@ First-order SISO models achieve $R^2=0.93$ (surge, $\tau=1.95$ s) and $R^2=0.83$
 Cross-model diagnostics identify quadratic drag as the dominant surge nonlinearity
 and reveal that speed-dependent rudder effectiveness, a key coupling for
 underactuated control design, is not resolvable from a single short trial,
-motivating targeted data collection. The NARX model matches one-step prediction
+motivating targeted data collection. A margin-based diagnostic makes the
+sufficiency question computable, reporting the forward speed at which the
+first-order model stops changing the control design. The NARX model matches one-step prediction
 accuracy ($R^2=0.93$) but diverges in closed-loop simulation, demonstrating that
 physical structure provides essential regularization under limited data. A
-comprehensive dataset spanning multiple operating regimes is being collected to
+larger dataset spanning multiple operating regimes is being collected to
 evaluate the full methodology.
 
 \end{document}

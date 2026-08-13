@@ -5,12 +5,29 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+
+% ─────────────────────────────────────────────────────────────────────────────
+% This file is the TEAM-FACING document: the paper outline at outline-level
+% specificity, plus per-section status and action assignments. Detail lives in
+% classicalmodelling_notes.tex. When something settles in the notes, promote a
+% one-line summary here rather than copying the argument across.
+% ─────────────────────────────────────────────────────────────────────────────
+
+% Status tags, action assignments and pointers into the notes.
+\newcommand{\st}[1]{{\footnotesize\textsf{\textcolor{black!60}{[#1]}}}}
+\newcommand{\act}[2]{\textbf{Action (#1):} #2}
+\newcommand{\notesref}[1]{{\footnotesize\itshape See notes: #1.}}
+
+\newlist{outline}{itemize}{2}
+\setlist[outline]{leftmargin=1.1em,itemsep=2pt,parsep=1pt,topsep=3pt,label=--}
 
 % ── Metadata ─────────────────────────────────────────────────────────────────
 \title{From Interpretable to Black-Box: Dynamic Model Identification for Small USV Control Design}
 
 \author{
-  \IEEEauthorblockN{Brian S. Bingham}
+  \IEEEauthorblockN{Brian S. Bingham and Carson Vogt}
   \IEEEauthorblockA{
     Department of Mechanical and Aerospace Engineering\\
     Naval Postgraduate School\\
@@ -23,16 +40,29 @@
 
 \maketitle
 
+\begin{center}
+\fbox{\parbox{0.92\columnwidth}{\footnotesize
+\textbf{TEAM OUTLINE.} Section content is stated at outline level only, with
+status and owner per section. The worked detail for the classical models
+(Levels~1 and 2) lives in \texttt{classicalmodelling\_notes.tex}, including the
+annotated reference checklist and the margin-diagnostic derivation.
+Status key: \st{OUTLINE} skeleton only, \st{DRAFTED} argument settled in notes,
+\st{DATA} waiting on measurement, \st{BLOCKED} waiting on a named item.}}
+\end{center}
+
 % ── Abstract ─────────────────────────────────────────────────────────────────
 \begin{abstract}
 Effective low-level feedback control of small underactuated uncrewed surface
 vehicles (USVs), specifically vessels under seven meters with a single thruster
-and rudder, requires dynamic models that provide both actionable design insight and 
+and rudder, requires dynamic models that provide both actionable design insight and
 predictive accuracy. Tow-tank testing is impractical at this scale;
 parameters must be identified solely from limited field trials. Existing system
-identification literature largely pursues model fidelity as an end in itself,
-producing representations whose complexity can obscure which aspects of the
-dynamics are structurally significant for compensator design.
+identification methods span a wide range of model complexity but offer little
+guidance on how much fidelity is enough, because sufficiency is only meaningful
+relative to a stated purpose. Absent that specification, the default is a bias
+toward more fidelity, since the benefit of an added term is readily quantified
+while its costs in identifiability, experimental burden and obscured design
+insight are not.
 
 We propose a methodology built around a deliberate spectrum of three model levels,
 each identified from the same experimental data: (1) first-order, linear,
@@ -52,261 +82,234 @@ First-order SISO models achieve R2=0.93 (surge, tau=1.95 s) and R2=0.83
 Cross-model diagnostics identify quadratic drag as the dominant surge nonlinearity
 and reveal that speed-dependent rudder effectiveness, a key coupling for
 underactuated control design, is not resolvable from a single short trial,
-motivating targeted data collection. The NARX model matches one-step prediction
-accuracy (R2=0.93) but diverges in closed-loop simulation, demonstrating that
-physical structure provides essential regularization under limited data. A
-comprehensive dataset spanning multiple operating regimes is being collected to
-evaluate the full methodology.
+motivating targeted data collection. A margin-based diagnostic makes the
+sufficiency question computable, reporting the forward speed at which the
+first-order model stops changing the control design. The NARX model matches
+one-step prediction accuracy (R2=0.93) but diverges in closed-loop simulation,
+demonstrating that physical structure provides essential regularization under
+limited data. A larger dataset spanning multiple operating regimes is being
+collected to evaluate the full methodology.
 \end{abstract}
 
 \begin{IEEEkeywords}
-uncrewed surface vehicle, system identification, model hierarchy, feedback control
-design, nonlinear dynamics, data-driven modeling, underactuated vessels
+uncrewed surface vehicle, system identification, model spectrum, control-oriented
+modeling, robustness margin, sim-to-real transfer, nonlinear dynamics,
+underactuated vessels
 \end{IEEEkeywords}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section*{Status Board}
+
+\begin{table}[h]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Section & Status & Own & Next action \\
+\midrule
+I. Introduction      & OUTLINE & BB  & Sufficiency placement \\
+II. Related Work     & DRAFTED & BB  & Verify Woo 2018 (CV) \\
+III. Methodology     & OUTLINE & BB, CV & Compute Diagnostic~4 \\
+IV. Platform, Data   & DATA    & TBD & Vehicle specifications \\
+V. Results           & BLOCKED & BB, CV & Blocked on III, IV \\
+VI. Discussion       & OUTLINE & TBD & Follows V \\
+VII. Conclusion      & OUTLINE & BB  & Follows VI \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\act{team}{Level~1 and 2, the classical models, are BB. Level~3, the black-box
+NARX model, is CV. Add CV's contact address before submission.}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Introduction}
 \label{sec:intro}
-% OUTLINE:
-% - Motivate the problem: small USVs (<7 m, single thruster + rudder) are
-%   increasingly deployed for survey, inspection, and autonomy research.
-%   Low-level speed and heading control is a prerequisite for any higher-level
-%   autonomy.
-%
-% - State the tension: control design requires a model, but the "right" model
-%   depends on what the model is for. The field tends to treat system ID as
-%   pure estimation (maximize fidelity) rather than as a tool for design insight.
-%
-% - Introduce the Box framing (implicit): a spectrum of models, each wrong in
-%   different ways, is collectively more useful than one complex model.
-%
-% - Scope the paper: single thruster + rudder, <7 m, field-identified parameters.
-%   Distinguish from differential-thrust vessels and from large vessels with
-%   tow-tank access.
-%
-% - State contributions:
-%   1. A three-level model spectrum methodology for this class of USV
-%   2. Cross-model diagnostics that identify structurally salient dynamics
-%   3. An empirical demonstration showing when physical structure matters
-%      (black-box simulation failure under limited data)
-%   4. A targeted data collection framework motivated by diagnostic gaps
+\st{OUTLINE} \st{BB}
 
+\begin{outline}
+\item Motivate: small USVs under 7~m with a single thruster and rudder; low-level
+  speed and heading control is a prerequisite for higher-level autonomy.
+\item The tension: ``how much fidelity is enough'' has no answer until ``enough for
+  what'' is specified. Absent that, practice defaults to more fidelity, because the
+  benefit of an added term is measurable and its cost is not.
+\item Framing: Box, all models are wrong but some are
+  useful~\cite{box1987empirical}; a spectrum is collectively more useful than any one
+  complex model.
+\item The decision ladder D1--D5: what a control-oriented model can support
+  (architecture choice, end-to-end verification, relative comparison, tuning
+  rehearsal) and what it cannot (gains that transfer without field tuning).
+\item Scope: single thruster plus rudder, under 7~m, field-identified parameters.
+  Distinct from differential-thrust craft and from vessels with tow-tank access.
+\item Contributions: the three-level spectrum; cross-model diagnostics; a
+  margin-based sufficiency test; a targeted data-collection framework.
+\end{outline}
+
+\act{BB}{Decide whether the sufficiency argument stays inside the introduction or
+becomes a short standalone section before Sec.~\ref{sec:methodology}. It currently
+runs long enough to unbalance the introduction.}
+
+\notesref{Introduction, including the four concrete costs of excess fidelity, the
+two independent bounds on useful fidelity and the Box versus Skelton distinction}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\section{Related Work}
+\section{Closely Related Work}
 \label{sec:related}
-% OUTLINE:
-% - Physics-based USV system identification
-%   * Sonnenburg & Woolsey (2013) [journal] and (2010) [OCEANS]: closest prior
-%     work -- explicitly compares model hierarchy from 3-DOF nonlinear down to
-%     Nomoto first-order; finds first-order best compromise at higher speeds.
-%     Does not include data-driven models.
-%   * Wang et al. (2020): 3-DOF nonlinear model from sea trials.
-%   * Nomoto (1957): foundational first-order steering model.
-%   * Fossen (2011): standard reference for USV dynamics formulation.
-%
-% - Data-driven and ML approaches
-%   * Woo et al. (2018): LSTM-RNN outperforms linear models (76.9% surge error
-%     reduction); evaluates one-step prediction only, not closed-loop simulation.
-%   * Xu et al. (2022): PINN for 3-DOF USV; better generalization with small
-%     datasets by embedding physical structure in the loss.
-%   * Tanveer & Ahmad (2023): linear second-order yaw model from pool trials.
-%
-% - Gap: no prior work explicitly constructs a spectrum across all three levels
-%   and evaluates it as a collective design tool. Prior work either pursues
-%   maximum fidelity or demonstrates a single ML approach, without cross-model
-%   diagnostics or honest closed-loop simulation comparison.
-%
-% - Note on scope: most prior work uses differential-thrust vessels or larger
-%   platforms. Single-thruster, rudder-steered USVs are underrepresented and
-%   present a harder underactuation problem.
+\st{DRAFTED} \st{BB}
 
+\begin{outline}
+\item Response models as the minimal control-oriented description: Nomoto's
+  first-order steering model~\cite{nomoto1957steering}, its place in the standard
+  formulation~\cite{fossen2011handbook}, and the identification tradition founded by
+  {\AA}str{\"o}m and K{\"a}llstr{\"o}m~\cite{astrom1976identification}.
+\item Physics-based maneuvering models and why their coefficients resist
+  identification from field data~\cite{abkowitz1964lectures,suarez2026regularized,%
+  xu2025review,alexandersson2022system}.
+\item Control-oriented identification of small craft, led by the nearest antecedent,
+  Sonnenburg and Woolsey~\cite{sonnenburg2013modeling}, with
+  \cite{eriksen2017modeling,muske2008identification,wirtensohn2013modelling,%
+  morel2025practical}.
+\item Data-driven and grey-box alternatives~\cite{woo2018dynamic,xu2022pinn,%
+  zhang2024gbm}, and the one-step versus closed-loop evaluation gap.
+\item Positioning, three gaps: prior work selects one model rather than retaining the
+  set; data-driven marine models are evaluated on one-step prediction only; the
+  small rudder-steered vessel is underrepresented.
+\end{outline}
+
+\act{CV}{Acquire Woo \emph{et al.}\ 2018 and verify that they report one-step
+prediction only. Gap~2 rests on this and it is the foil for the Level-3 result. Do
+not submit without checking.}
+
+\act{BB}{Confirm the Skelton framing carries the ``appropriate, not small''
+criterion as quoted, once the paper is in hand.}
+
+\notesref{Closely Related Work, an annotated checklist giving for each reference the
+locator, why it is cited and what remains unresolved}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Model Spectrum Methodology}
 \label{sec:methodology}
-% OUTLINE:
-% - Framing: three levels, each identified from the same dataset.
-%   Each level answers a different design question.
+\st{OUTLINE} \st{BB}
 
-\subsection{Level~1: First-Order Linear SISO Models}
-\label{sec:l1}
-% OUTLINE:
-% - Nomoto-style first-order transfer functions for surge and yaw, treated as
-%   independent SISO systems.
-%
-%   Surge: G_v(s) = K / (tau*s + 1),  input=throttle (normalized), output=speed
-%   Yaw:   G_r(s) = K_r / (tau_r*s + 1), input=rudder, output=yaw rate
-%
-% - Identification: discrete-time ARX(1,1) via ordinary least squares; convert
-%   poles to physical parameters tau and K.
-%
-% - Design utility: directly readable time constants and gains for PID tuning;
-%   immediately reveals dominant timescales for each channel.
-%
-% - Limitation: linear, decoupled; ignores quadratic drag, surge-yaw coupling,
-%   and operating-regime dependence. Taken alone, risks oversimplification that
-%   leads to a compensator architecture mismatch.
+\begin{outline}
+\item Level~1: first-order linear SISO transfer functions for surge and yaw,
+  identified as discrete ARX(1,1) by ordinary least squares.
+\item Level~2: nonlinear state-space with quadratic drag, identified in two phases so
+  that drag is estimated from coasting and thrust gain from powered segments.
+\item Level~3: NARX multilayer perceptron, trained on a chronological split, with
+  one-step prediction and closed-loop simulation reported separately.
+\item Cross-model diagnostics, four in total: speed-dependent rudder gain; drag
+  nonlinearity; rudder-induced surge drag; and whether the added fidelity falls
+  inside the robustness margin of the design.
+\end{outline}
 
-\subsection{Level~2: Nonlinear State-Space Model}
-\label{sec:l2}
-% OUTLINE:
-% - Physics-based, two-state model derived from planar rigid-body equations:
-%
-%   dv/dt = k_T * u - d2 * v|v|       (surge)
-%   dr/dt = k_delta * delta - d_r * r  (yaw)
-%
-% - Quadratic drag term v|v| is the key nonlinearity relative to Level 1.
-%
-% - Two-phase identification strategy:
-%   Phase 1 (coasting, u~0): identify d2 from zero-thrust deceleration segments.
-%   Phase 2 (powered): identify k_T with d2 fixed.
-%   This decoupling avoids conflation of thrust and drag in a joint fit.
-%
-% - Design utility: reveals the drag structure relevant to controller design
-%   (e.g., feedforward compensation, speed-hold steady state).
-%   Maintains physical interpretability while adding the dominant nonlinearity.
+\act{BB}{Compute Diagnostic~4 on the existing dataset. Minimum viable form is the
+gain ratio against the Level-1 gain margin plus the crossover speed for surge.}
 
-\subsection{Level~3: Black-Box NARX Model}
-\label{sec:l3}
-% OUTLINE:
-% - Nonlinear AutoRegressive with eXogenous inputs (NARX) multilayer perceptron.
-%   Predicts [v(k+1), r(k+1)] from n_lags past samples of all four signals:
-%   [v, r, throttle, rudder]. MIMO: discovers coupling the structured models
-%   assume away.
-%
-% - Architecture: 3 lags, 1 hidden layer (20 neurons), ReLU activation,
-%   StandardScaler normalization, early stopping to guard against overfitting.
-%
-% - Training: chronological 80/20 split (first 100 s train, last 30 s test).
-%   Chronological split avoids temporal leakage.
-%
-% - Evaluation: one-step prediction AND closed-loop simulation separately
-%   reported -- these diverge significantly with limited data.
-%
-% - Design utility: bounds the benefit of added complexity given available data;
-%   motivates richer data collection; a reference point for future comparison
-%   as dataset grows.
+\act{CV}{Level~3 NARX: confirm the architecture, lag count and chronological split
+stated here match the current notebook, and settle whether the black-box level is
+framed as a competitor or as an unregularized reference point.}
 
-\subsection{Cross-Model Diagnostics}
-\label{sec:diagnostics}
-% OUTLINE:
-% - The spectrum's value is not just the three fits -- it is the comparative
-%   analysis across levels that reveals salient structure.
-%
-% - Three diagnostics performed:
-%   1. Speed-dependent rudder gain: does replacing constant K_r with K_r*v
-%      improve yaw-rate fit? (Result: no improvement with current data --
-%      ΔR² = -0.03 -- flags gap in data coverage, not absence of effect)
-%
-%   2. Drag nonlinearity: linear vs. quadratic fit to coasting deceleration.
-%      (Result: quadratic dominant, ΔR² = +0.20; D1≈0, D2=0.44 m^{-1})
-%
-%   3. Rudder-induced surge drag: correlation of δ² with surge residuals.
-%      (Result: negligible, r = -0.08; coupling term not warranted)
-%
-% - Implication: diagnostics directly inform the Level-2 model structure AND
-%   identify what the next data collection must target.
+\act{CV}{Level~3 lives on a separate branch; Levels~1 and 2 are on
+\texttt{traditional-models}. Coordinate the merge so Sec.~\ref{sec:methodology} reads
+as one piece.}
 
+\notesref{Model Spectrum Methodology, and the four-step derivation of Diagnostic~4
+with the Level-2 linearization}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Experimental Platform and Data Collection}
 \label{sec:experiment}
-% OUTLINE:
-% - Vehicle description: [USV model/name], approx. [length] m, single
-%   propeller + rudder, ArduPilot autopilot, GPS + IMU.
-%   Inputs: RC throttle (RCOU_C3) and rudder (RCOU_C1) commands, 1100-1900 us PWM.
-%   Outputs: GPS speed (5 Hz), IMU yaw rate (137 Hz).
-%
-% - Data cleaning: multi-rate streams aligned to 10 Hz common grid via
-%   linear interpolation; RC commands normalized to [-1,1].
-%   One 29.3 s gap (vessel repositioning) handled by segmentation.
-%
-% - Current dataset: single step-response trial, 130 s working window
-%   (150-280 s of a 341 s recording), throttle range 0-39%, speed 0-2.9 m/s.
-%   This dataset is intentionally minimal -- a proof-of-concept for the workflow.
-%
-% - Planned dataset (full paper): multiple trials spanning throttle 0-100%,
-%   dedicated rudder sweeps at fixed speeds (to resolve speed-dependent gain),
-%   and maneuvers spanning displacement, semi-displacement, and planing regimes.
-%   [describe vehicle operating speed range and transition speeds]
+\st{DATA} \st{TBD}
 
+\begin{outline}
+\item Vehicle description, autopilot and sensing. Inputs are normalized RC throttle
+  and rudder; outputs are GPS speed and IMU yaw rate.
+\item Data cleaning: multi-rate streams aligned to a 10~Hz grid, one gap handled by
+  segmentation.
+\item Current dataset: a single step-response trial, 130~s working window, throttle
+  0--39\%, speed 0--2.9~m/s. Intentionally minimal, a proof of concept.
+\item Planned dataset: multiple trials across the throttle range, dedicated rudder
+  sweeps at fixed speeds, and maneuvers spanning the operating regimes.
+\end{outline}
+
+\act{TBD}{Fill the vehicle specifications: make, model, length, mass, propulsion and
+the speed range including any regime transitions.}
+
+\act{TBD}{Plan the rudder-sweep trials. These are what resolve the speed-dependent
+rudder gain that Diagnostic~1 could not settle.}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Results}
 \label{sec:results}
+\st{BLOCKED} \st{TBD}
 
-\subsection{Level~1: First-Order SISO}
-% OUTLINE:
-% - Table: identified parameters (tau, K) for surge and yaw.
-% - Simulation R² for both channels.
-% - Figure: measured vs. simulated speed and yaw rate.
-% - Note: parameters directly usable for PID design.
+\begin{outline}
+\item Level~1: identified time constants and gains, simulation fit, and a measured
+  against simulated figure.
+\item Level~2: identified parameters, coasting against joint fit for the drag term,
+  and fit comparison against Level~1.
+\item Level~3: one-step against closed-loop simulation fit, and the divergence figure
+  for surge.
+\item Cross-model diagnostic summary: four diagnostics, findings and the implication
+  each carries for model and control design.
+\end{outline}
 
-\subsection{Level~2: Nonlinear State-Space}
-% OUTLINE:
-% - Table: identified parameters (k_T, d2, k_delta, d_r).
-% - Two-phase identification: compare d2 from coasting vs. joint fit;
-%   motivate why two-phase is necessary.
-% - Simulation R² comparison vs. Level 1.
-% - Figure: measured vs. simulated (combined plot with all three levels).
+\act{CV}{Level~3 results: one-step against closed-loop simulation fit, and the surge
+divergence figure. This pair is the paper's central empirical claim.}
 
-\subsection{Level~3: NARX}
-% OUTLINE:
-% - One-step prediction R² vs. closed-loop simulation R² -- highlight the gap.
-% - Figure: simulation divergence for surge.
-% - Interpretation: limited data makes black-box models unreliable simulators;
-%   physical structure is essential regularization at this data scale.
+\act{BB, CV}{Produce the combined figure showing measured data against all three
+levels on one set of axes.}
 
-\subsection{Cross-Model Diagnostic Summary}
-% OUTLINE:
-% - Summary table: three diagnostics, findings, implication for model/control design.
-% - Key message: the spectrum reveals structure that no single model exposes.
-
+\act{TBD}{Blocked on Sec.~\ref{sec:methodology} Diagnostic~4 and on the vehicle
+specifications.}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Discussion}
 \label{sec:discussion}
-% OUTLINE:
-% - What the spectrum reveals for this class of vehicle:
-%   * Surge and yaw are weakly coupled at the operating speeds tested --
-%     decoupled SISO controllers are a reasonable starting point.
-%   * Quadratic drag is significant -- speed-hold controllers need nonlinear
-%     feedforward; linear controllers will have speed-dependent steady-state error.
-%   * Speed-dependent rudder gain cannot yet be confirmed or denied --
-%     this is the primary gap the expanded dataset must fill.
-%     If confirmed, it implies gain scheduling or adaptive control is warranted.
-%
-% - Implications for compensator architecture selection:
-%   * Level 1 → baseline PID structure with identified gains.
-%   * Level 2 → nonlinear feedforward for drag compensation;
-%     potentially gain-scheduled rudder loop.
-%   * Level 3 → motivates MPC or learning-based control once data is sufficient.
-%
-% - On fidelity vs. insight: even the highest-fidelity model here cannot
-%   eliminate experimental fine-tuning. The spectrum sets realistic expectations
-%   and guides where to spend tuning effort.
-%
-% - Limitations of the current dataset and what the full study will add.
+\st{OUTLINE} \st{TBD}
 
+\begin{outline}
+\item What the spectrum reveals for this vehicle class: weak surge-yaw coupling at
+  the speeds tested, significant quadratic drag, and a speed-dependent rudder gain
+  that the current data can neither confirm nor deny.
+\item Implications for compensator architecture, level by level.
+\item Return to D1--D5: none of the three levels reaches D5, and saying so plainly is
+  the honest position. The defensible claim is D1 through D4.
+\item Limitations of the current dataset and what the full study adds.
+\end{outline}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Conclusion}
 \label{sec:conclusion}
-% OUTLINE:
-% - Summarize the three-level spectrum methodology for small underactuated USVs.
-% - Restate the core finding: the spectrum collectively provides more control
-%   design guidance than any single model; simple models are not merely a
-%   stepping stone but a persistent design tool.
-% - State what the full dataset will allow: resolution of speed-dependent
-%   rudder dynamics, validation across operating regimes, and a more
-%   definitive comparison of black-box vs. structured models.
-% - Call to action: release the dataset and analysis notebooks as open tools
-%   for the USV research community.
+\st{OUTLINE} \st{BB}
 
+\begin{outline}
+\item The spectrum collectively provides more control design guidance than any single
+  model; simple models are a persistent design tool rather than a stepping stone.
+\item What the full dataset will allow.
+\item Future work: margin-based sufficiency as a formal criterion across the
+  spectrum, replacing expert judgment with a computable bound.
+\item Release the dataset and analysis notebooks.
+\end{outline}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\nocite{*}  % include all references even while body is outline-only
+\section*{Open Decisions for the Team}
+
+\begin{outline}
+\item Page budget. The venue allows a short paper; the material currently exceeds it.
+  Candidate cuts are recorded per reference in the notes.
+\item Whether the economics argument, that required fidelity is set by the ratio of
+  hardware-test cost to simulation-test cost, is supportable here or should be flagged
+  as future work.
+\item Whether Diagnostic~4 appears in full or in its minimum viable form, with the
+  full treatment deferred.
+\item Whether Sec.~\ref{sec:intro} keeps the sufficiency argument or yields it to a
+  standalone section.
+\end{outline}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\nocite{*}
 \bibliographystyle{IEEEtran}
 \bibliography{references}
 

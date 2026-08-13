@@ -8,6 +8,19 @@
   note      = {Source of the aphorism ``all models are wrong, but some are useful''}
 }
 
+@article{box1976science,
+  author  = {Box, George E. P.},
+  title   = {Science and Statistics},
+  journal = {Journal of the American Statistical Association},
+  volume  = {71},
+  number  = {356},
+  pages   = {791--799},
+  year    = {1976},
+  doi     = {10.1080/01621459.1976.10480949},
+  note    = {Earliest citable form of the over-elaboration argument: a wrong model
+             cannot be made correct by excessive elaboration}
+}
+
 @book{fossen2011handbook,
   author    = {Fossen, Thor I.},
   title     = {Handbook of Marine Craft Hydrodynamics and Motion Control},
@@ -15,6 +28,42 @@
   year      = {2011},
   doi       = {10.1002/9781119994138}
 }
+
+@book{ljung1999system,
+  author    = {Ljung, Lennart},
+  title     = {System Identification: Theory for the User},
+  edition   = {2nd},
+  publisher = {Prentice Hall},
+  address   = {Upper Saddle River, NJ},
+  year      = {1999}
+}
+
+@article{skelton1989model,
+  author  = {Skelton, Robert E.},
+  title   = {Model Error Concepts in Control Design},
+  journal = {International Journal of Control},
+  volume  = {49},
+  number  = {5},
+  pages   = {1725--1753},
+  year    = {1989},
+  doi     = {10.1080/00207178908559735},
+  note    = {Argues model errors need not be small, only appropriate for the control
+             design; modelling and control cannot be separated}
+}
+
+@article{gevers2005identification,
+  author  = {Gevers, Michel},
+  title   = {Identification for Control: From the Early Achievements to the
+             Revival of Experiment Design},
+  journal = {European Journal of Control},
+  volume  = {11},
+  number  = {4--5},
+  pages   = {335--352},
+  year    = {2005},
+  doi     = {10.3166/ejc.11.335-352}
+}
+
+% ── Response (Nomoto) Models and Their Identification ───────────────────────
 
 @article{nomoto1957steering,
   author  = {Nomoto, Kensaku and Taguchi, T. and Honda, K. and Hirano, S.},
@@ -26,7 +75,85 @@
   year    = {1957}
 }
 
-% ── USV Modeling and System Identification ───────────────────────────────────
+@article{astrom1976identification,
+  author  = {{\AA}str{\"o}m, Karl Johan and K{\"a}llstr{\"o}m, Claes G.},
+  title   = {Identification of Ship Steering Dynamics},
+  journal = {Automatica},
+  volume  = {12},
+  number  = {1},
+  pages   = {9--22},
+  year    = {1976},
+  doi     = {10.1016/0005-1098(76)90064-9}
+}
+
+@article{kallstrom1981experiences,
+  author  = {K{\"a}llstr{\"o}m, Claes G. and {\AA}str{\"o}m, Karl Johan},
+  title   = {Experiences of System Identification Applied to Ship Steering},
+  journal = {Automatica},
+  volume  = {17},
+  number  = {1},
+  pages   = {187--198},
+  year    = {1981},
+  doi     = {10.1016/0005-1098(81)90094-7}
+}
+
+% ── Physics-Based Maneuvering Models and Identifiability ────────────────────
+
+@techreport{abkowitz1964lectures,
+  author      = {Abkowitz, Martin A.},
+  title       = {Lectures on Ship Hydrodynamics -- Steering and Manoeuvrability},
+  institution = {Hydro- and Aerodynamics Laboratory},
+  number      = {Report Hy-5},
+  address     = {Lyngby, Denmark},
+  year        = {1964}
+}
+
+@article{yasukawa2015mmg,
+  author  = {Yasukawa, Hironori and Yoshimura, Yasuo},
+  title   = {Introduction of {MMG} Standard Method for Ship Maneuvering Predictions},
+  journal = {Journal of Marine Science and Technology},
+  volume  = {20},
+  number  = {1},
+  pages   = {37--52},
+  year    = {2015},
+  doi     = {10.1007/s00773-014-0293-y}
+}
+
+@misc{suarez2026regularized,
+  author       = {Su{\'a}rez, R. F. and Berndt, J. C. and Abdel-Maksoud, M.},
+  title        = {Regularized Machine Learning for System Identification of Ship
+                  Free-Running Manoeuvres from {CFD}-Based Synthetic Data:
+                  A Comparative Study},
+  year         = {2026},
+  howpublished = {arXiv:2606.17121},
+  url          = {https://arxiv.org/abs/2606.17121},
+  note         = {Preprint, under review. Multicollinearity among Abkowitz
+                  derivatives worsens as the coefficient set grows; Ridge
+                  regression and more diverse excitation are the effective remedies}
+}
+
+@article{xu2025review,
+  author  = {Xu, Haitong and Guedes Soares, C.},
+  title   = {Review of System Identification for Manoeuvring Modelling of
+             Marine Surface Ships},
+  journal = {Journal of Marine Science and Application},
+  volume  = {24},
+  pages   = {459--478},
+  year    = {2025},
+  doi     = {10.1007/s11804-025-00681-w}
+}
+
+@article{alexandersson2022system,
+  author  = {Alexandersson, Martin and Mao, Wengang and Ringsberg, Jonas W.},
+  title   = {System Identification of Vessel Manoeuvring Models},
+  journal = {Ocean Engineering},
+  volume  = {266},
+  pages   = {112940},
+  year    = {2022},
+  doi     = {10.1016/j.oceaneng.2022.112940}
+}
+
+% ── Control-Oriented Identification for USVs ────────────────────────────────
 
 @article{sonnenburg2013modeling,
   author  = {Sonnenburg, Christian R. and Woolsey, Craig A.},
@@ -37,37 +164,114 @@
   pages   = {371--398},
   year    = {2013},
   doi     = {10.1002/rob.21452},
-  note    = {Compares model hierarchy from 3-DOF nonlinear to Nomoto first-order;
-             finds first-order steering model best compromise at higher speeds}
+  note    = {Compares a hierarchy of speed and steering models for a 4.8~m
+             planing RHIB; adopts a speed-scheduled Nomoto-with-sideslip model}
 }
 
 @inproceedings{sonnenburg2010control,
-  author    = {Sonnenburg, Christian R. and Woolsey, Craig A.},
+  author    = {Sonnenburg, Christian R. and Gadre, Aditya and Horner, Douglas and
+               Kragelund, Sean and Marcus, Andrew and Stilwell, Daniel J. and
+               Woolsey, Craig A.},
   title     = {Control-Oriented Planar Motion Modeling of Unmanned Surface Vehicles},
-  booktitle = {OCEANS 2010 IEEE -- Sydney},
+  booktitle = {OCEANS 2010 MTS/IEEE Seattle},
+  pages     = {1--10},
   year      = {2010},
-  doi       = {10.1109/OCEANSSYD.2010.5664297}
+  doi       = {10.1109/OCEANS.2010.5664297}
 }
 
-@inproceedings{wang2021modeling,
+@inproceedings{eriksen2017modeling,
+  author    = {Eriksen, Bj{\o}rn-Olav H. and Breivik, Morten},
+  title     = {Modeling, Identification and Control of High-Speed {ASVs}:
+               Theory and Experiments},
+  booktitle = {Sensing and Control for Autonomous Vehicles},
+  series    = {Lecture Notes in Control and Information Sciences},
+  volume    = {474},
+  pages     = {407--431},
+  publisher = {Springer},
+  year      = {2017},
+  doi       = {10.1007/978-3-319-55372-6_19},
+  note      = {Control-oriented model for an 8.45~m ASV spanning displacement,
+               semi-displacement, and planing regimes; validated in full-scale trials}
+}
+
+@inproceedings{muske2008identification,
+  author    = {Muske, Kenneth R. and Ashrafiuon, Hashem and Haas, Geoffrey and
+               McCloskey, Ryan and Flynn, Timothy},
+  title     = {Identification of a Control Oriented Nonlinear Dynamic {USV} Model},
+  booktitle = {2008 American Control Conference},
+  pages     = {562--567},
+  year      = {2008},
+  doi       = {10.1109/ACC.2008.4586551},
+  note      = {Identifies 3-DOF drag parameters from decelerating (coast-down)
+               and terminal-velocity tests rather than a joint fit}
+}
+
+@inproceedings{hann2010simplified,
+  author    = {Hann, Christopher E. and Sirisena, Harsha and Wongvanich, Napasool},
+  title     = {Simplified Modeling Approach to System Identification of
+               Nonlinear Boat Dynamics},
+  booktitle = {2010 American Control Conference},
+  pages     = {5218--5223},
+  year      = {2010},
+  doi       = {10.1109/ACC.2010.5530459}
+}
+
+@inproceedings{wirtensohn2013modelling,
+  author    = {Wirtensohn, Stefan and Reuter, Johannes and Blaich, Michael and
+               Schuster, Michael and Hamburger, Oliver},
+  title     = {Modelling and Identification of a Twin Hull-Based Autonomous
+               Surface Craft},
+  booktitle = {2013 18th International Conference on Methods \& Models in
+               Automation \& Robotics (MMAR)},
+  pages     = {121--126},
+  year      = {2013},
+  doi       = {10.1109/MMAR.2013.6669892}
+}
+
+@inproceedings{morel2023modelling,
+  author    = {Morel, Thalia A. and Orihuela, Luis and Bejarano, Guillermo},
+  title     = {Modelling and Identification of an Autonomous Surface Vehicle},
+  booktitle = {MARTECH 2023: 10th International Workshop on Marine Technology},
+  address   = {Castell{\'o} de la Plana, Spain},
+  year      = {2023},
+  note      = {Yellowfish ASV; tabulated model parameters for a small
+               university-built vessel}
+}
+
+@article{morel2025practical,
+  author  = {Morel, Thalia and Orihuela, Luis and Combastel, Christophe and
+             Bejarano, Guillermo},
+  title   = {Practical Identification Approach for the Actuation Dynamics of
+             Autonomous Surface Vehicles with Minimal Instrumentation},
+  journal = {Ocean Engineering},
+  volume  = {319},
+  pages   = {120098},
+  year    = {2025},
+  doi     = {10.1016/j.oceaneng.2024.120098},
+  note    = {Extended version available as arXiv:2410.00631}
+}
+
+@inproceedings{tanveer2022yaw,
+  author    = {Tanveer, Ahsan and Ahmad, Sarvat Mushtaq},
+  title     = {Unmanned Surface Vehicle: Yaw Modeling and Identification},
+  booktitle = {2nd International Conference on Engineering and Applied
+               Natural Sciences (ICEANS)},
+  address   = {Konya, Turkey},
+  year      = {2022},
+  note      = {Second-order yaw model from pool trials; 59\% cross-validation fit.
+               Also available as arXiv:2303.13064}
+}
+
+@inproceedings{wang2020modeling,
   author    = {Wang, Ning and others},
-  title     = {Modeling and Identification of an Unmanned Surface Vehicle Based on
-               Sea Trials Data},
+  title     = {Modeling and Identification of an Unmanned Surface Vehicle Based
+               on Sea Trials Data},
   booktitle = {2020 Chinese Automation Congress (CAC)},
   year      = {2020},
-  doi       = {10.1109/CAC51299.2020.9318288},
   note      = {3-DOF nonlinear model identified from sea trials for control}
 }
 
-@inproceedings{caharija2017approach,
-  author    = {Caharija, Walter and others},
-  title     = {An Approach for System Identification in Unmanned Surface Vehicles},
-  booktitle = {OCEANS 2017 -- Aberdeen},
-  year      = {2017},
-  doi       = {10.1109/OCEANSE.2017.8204440}
-}
-
-% ── Data-Driven and ML Approaches ───────────────────────────────────────────
+% ── Data-Driven and Grey-Box Approaches ─────────────────────────────────────
 
 @article{woo2018dynamic,
   author  = {Woo, Joohyun and Park, Jongyoung and Yu, Chanwoo and Kim, Nakwan},
@@ -79,7 +283,7 @@
   year    = {2018},
   doi     = {10.1016/j.apor.2018.06.011},
   note    = {LSTM-RNN reduces surge error 76.9\% and yaw-rate error 60.7\%
-             over linear models; no closed-loop simulation evaluation}
+             over linear models; evaluated on one-step prediction}
 }
 
 @article{xu2022pinn,
@@ -93,17 +297,43 @@
   pages   = {148},
   year    = {2022},
   doi     = {10.3390/jmse10020148},
-  note    = {PINN combining physical 3-DOF structure with data-driven learning;
-             better generalization than pure NN with small training sets}
+  note    = {Embeds 3-DOF physical structure in the loss; better generalization
+             than a pure network on small training sets}
 }
 
-@misc{tanveer2023yaw,
-  author       = {Tanveer, Ahsan and Ahmad, Sarvat Mushtaq},
-  title        = {Unmanned Surface Vehicle: Yaw Modeling and Identification},
-  year         = {2023},
-  howpublished = {arXiv:2303.13064},
-  url          = {https://arxiv.org/abs/2303.13064},
-  note         = {Linear second-order yaw model identified from pool trials}
+@article{zhang2024gbm,
+  author  = {Zhang, Mengwei and Li, Decai and Xiong, Junfeng and He, Yuqing},
+  title   = {{GBM-ILM}: Grey-Box Modeling Based on Incremental Learning and
+             Mechanism for Unmanned Surface Vehicles},
+  journal = {Journal of Marine Science and Engineering},
+  volume  = {12},
+  number  = {4},
+  pages   = {627},
+  year    = {2024},
+  doi     = {10.3390/jmse12040627}
+}
+
+@inproceedings{xue2022probabilistic,
+  author    = {Xue, Yifan and Wang, Xingyao and Qin, Hongde and Deng, Zhongchao},
+  title     = {Probabilistic Identification of Unmanned Surface Vehicles Using
+               Efficient Gaussian Processes with Uncertainty Propagation},
+  booktitle = {2022 IEEE International Conference on Unmanned Systems (ICUS)},
+  pages     = {1004--1009},
+  year      = {2022},
+  doi       = {10.1109/ICUS55513.2022.9986638}
+}
+
+% ── Models as Autonomy-Prototyping Infrastructure ───────────────────────────
+
+@inproceedings{bingham2019gazebo,
+  author    = {Bingham, Brian and Ag{\"u}ero, Carlos and McCarrin, Michael and
+               Klamo, Joseph and Malia, Joshua and Allen, Kevin and Lum, Tyler and
+               Rawson, Marshall and Waqar, Rumman},
+  title     = {Toward Maritime Robotic Simulation in {Gazebo}},
+  booktitle = {OCEANS 2019 MTS/IEEE Seattle},
+  pages     = {1--10},
+  year      = {2019},
+  doi       = {10.23919/OCEANS40490.2019.8962724}
 }
 
 % ── Control of Underactuated USVs ───────────────────────────────────────────

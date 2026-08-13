@@ -1,3 +1,7 @@
+# Local reference copies: publisher PDFs stay on disk, manifest is tracked
+refs/*.pdf
+!refs/README.md
+
 # LaTeX build artefacts
 *.aux
 *.bbl

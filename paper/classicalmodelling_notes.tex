@@ -1,0 +1,907 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{cite}
+
+% ── Draft reference links ────────────────────────────────────────────────────
+% Each citation carries a small superscript marker that opens the local copy of
+% the paper in paper/refs/<bibkey>.pdf. Keys with no local PDF are left
+% untouched, so the marker doubles as an inventory of what we hold.
+% These are working notes, so the links stay on. Set \draftlinksfalse to strip.
+\newif\ifdraftlinks
+\draftlinkstrue
+
+\ifdraftlinks
+  \usepackage{etoolbox}
+  \usepackage{xcolor}
+  \newcommand{\refpdfdir}{refs}
+  \newcommand{\refpdfscheme}{run:}
+  \newcommand{\refpdfglyph}{\textbullet}
+  \newcommand{\dlmark}[1]{%
+    \IfFileExists{\refpdfdir/#1.pdf}%
+      {\href{\refpdfscheme\refpdfdir/#1.pdf}%
+            {\textsuperscript{\tiny\textcolor{blue}{\refpdfglyph}}}}%
+      {}%
+  }
+  \let\dlorigcite\cite
+  \renewcommand{\cite}[2][]{%
+    \ifstrempty{#1}{\dlorigcite{#2}}{\dlorigcite[#1]{#2}}%
+    \forcsvlist{\dlmark}{#2}%
+  }
+\fi
+
+% Online locators. \detokenize keeps underscores literal, so DOIs such as
+% 10.1007/978-3-319-55372-6_19 need no hand-escaping.
+\newcommand{\doilink}[1]{%
+  \href{https://doi.org/\detokenize{#1}}{\texttt{\footnotesize doi:\detokenize{#1}}}}
+\newcommand{\arxivlink}[1]{%
+  \href{https://arxiv.org/abs/\detokenize{#1}}{\texttt{\footnotesize arXiv:\detokenize{#1}}}}
+\newcommand{\weblink}[2]{\href{#1}{\texttt{\footnotesize #2}}}
+\newcommand{\nolink}[1]{{\footnotesize\itshape #1}}
+
+\newlist{outline}{itemize}{4}
+\setlist[outline]{leftmargin=1.2em,itemsep=2pt,parsep=1pt,topsep=3pt,label=--}
+\newcommand{\Point}{\textbf{Point.}\ }
+\newcommand{\Open}{\textbf{Open.}\ }
+
+\sloppy
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,
+            urlcolor=blue!50!black}
+
+\title{Classical Modelling Notes\\
+  \large Levels 1 and 2 for the OCEANS 2026 USV Identification Paper}
+\author{Brian S. Bingham}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+\fbox{\parbox{0.9\textwidth}{\small
+\textbf{Internal working notes. Not for circulation.}\\[0.4em]
+This document holds the detail: the annotated reference checklist, the
+development of the sufficiency argument and the derivation behind the
+margin-based diagnostic. It is the scratch space for the traditional
+engineering models, Levels 1 and 2.\\[0.4em]
+The companion \texttt{paper.tex} is the team-facing document. It carries the
+paper outline at outline-level specificity, plus section status and action
+assignments. Detail belongs here; coordination belongs there. When something
+here settles, promote a one-line summary into \texttt{paper.tex} rather than
+copying the argument across.\\[0.4em]
+Blue superscript dots mark citations with a local PDF in \texttt{refs/}.}}
+\end{center}
+
+\tableofcontents
+\bigskip
+
+\section{Introduction}
+\label{sec:intro}
+
+\begin{outline}
+\item \textbf{Motivate.} Small USVs (under 7~m, single thruster plus rudder) are
+  increasingly deployed for survey, inspection and autonomy research. Low-level
+  speed and heading control is a prerequisite for any higher-level autonomy.
+\item \textbf{The tension.} Control design requires a model, but the ``right''
+  model depends on what the model is for. ``How much fidelity is enough?'' has no
+  answer until ``enough for what?'' is specified.
+  \begin{outline}
+  \item Because that specification is usually left implicit, the default is a bias
+    toward more fidelity: the benefit of an added term is easy to measure
+    ($\Delta R^2$), while its cost is diffuse and rarely accounted for, namely
+    identifiability from feasible experiments, experimental burden and loss of
+    design insight.
+  \item \textbf{Broadly, this is the overfitting problem.} Driving $R^2$ up is a naive
+    objective once it is separated from what the model is for. Past some point the
+    added terms improve the fit and damage the thing we actually want, which is good
+    control. Machine learning at least made that trade visible by convention, through
+    held-out data, and pays it down through
+    regularization~\cite{suarez2026regularized}.
+  \item Held-out scoring is a weaker check here than it is in machine learning,
+    because the \emph{parameters} and not only the predictions are the deliverable. A
+    maneuvering model can pass a prediction test while its individual coefficients are
+    meaningless~\cite{alexandersson2022system}. Hence diagnostics that compare
+    \emph{across} model structures rather than scoring one structure on held-out data.
+  \item Prior work is \emph{not} naive about this, and the most careful example shows
+    exactly where the difficulty sits. Sonnenburg and
+    Woolsey~\cite{sonnenburg2013modeling} build genuine quantitative machinery for
+    sufficiency: a cost function evaluated on held-out validation maneuvers,
+    tabulated per model and per regime. The final decision is nonetheless made by
+    judgment, discarding the model that scores best because its two extra parameters
+    are ``not worth the slight edge'' in turn-rate estimation.
+  \item \textbf{This is not a lapse on their part.} Their cost function scores the
+    \emph{benefit} of added parameters. No comparable metric exists for the
+    \emph{cost}, so there is nothing for the judgment to be replaced by. The
+    quantitative apparatus stops one step short of the decision it was built to
+    support. That vacancy, not any author's rigor, is what this paper is aimed at.
+    \emph{Detail in Sec.~\ref{sec:rw-usv}.}
+  \item The residual gap is that sufficiency is resolved by \emph{selecting} one
+    model, after which the discarded models stop contributing.
+  \end{outline}
+\item \textbf{Framing.} George Box - all models are wrong
+  but some are useful~\cite{box1987empirical}: a spectrum of models, each wrong in
+  different ways, is collectively more useful than any one complex model.
+\item \textbf{Sufficient for what? The decisions a control-oriented model must
+  support.} Models (and simulations) are means to an end, not ends in themselves. The
+  end here is specific: transferring low-level stabilization control from simulation
+  to the vehicle.
+  \begin{outline}
+  \item \textbf{The naive premise, stated so we can reject it.} The implicit default is often to assume that the model is faithful replica of the system under test, a
+    twin (analog or digital), so that with sufficient fidelity
+    one could engineer control and autonomy entirely in simulation and transfer
+    zero-shot to hardware. Fidelity is then an unbounded good and the only question
+    is how much of it you can afford.
+  \item \textbf{Fidelity is not the objective, and pursuing it past a point does
+    concrete harm.} What we want is control that works on the vehicle, and that is
+    not monotone in model fidelity. Four costs, none hypothetical:
+    \begin{outline}
+    \item \emph{The estimates get worse, not merely more numerous.} Added terms
+      degrade the conditioning of the fit, so parameters that were previously well
+      determined become less certain~\cite{suarez2026regularized}. That is a loss
+      taken, not a gain forgone.
+    \item \emph{Field time is the scarce resource.} Every added term needs excitation
+      to identify it, so fidelity converts directly into trials on a platform where
+      trials are the binding constraint.
+    \item \emph{Design insight degrades.} A model with many terms predicts without
+      explaining. It cannot say which term drives the behavior, which is exactly what
+      architecture selection (D1) needs from it.
+    \item \emph{False confidence.} A high-fidelity model invites the belief that the
+      computed gains will transfer, which is D5 below and does not hold. Higher
+      fidelity can therefore make a team \emph{less} likely to plan field validation.
+      That is a schedule and safety risk, not a modeling one.
+    \end{outline}
+  \item \textbf{Two independent bounds on useful fidelity.} The economic bound below
+    is the obvious one. The sharper claim is that even if fidelity were free there
+    would still be a ceiling: once the model discrepancy falls inside the robustness
+    margin of the design, further fidelity changes no decision and is inert. The
+    limit is structural, not budgetary. \emph{This is the quantity Diagnostic~4
+    (Sec.~\ref{sec:diagnostics}) computes.}
+  \item \textbf{Two distinct claims, and the second is the one we need.}
+    \begin{outline}
+    \item \emph{Box's claim is epistemic.} Correctness is unattainable, so a wrong
+      model cannot be made ``\,`correct' \dots by excessive elaboration,'' and
+      ``overelaboration and overparameterization is often the mark of
+      mediocrity''~\cite{box1976science}. Parsimony follows from the impossibility of
+      truth.
+    \item \emph{Right versus effective is a decision claim, and stronger.} Additional
+      correctness is often genuinely available and should still be declined when it
+      trades against the outcome. Skelton put this in control terms in
+      1989~\cite{skelton1989model}: model errors ``need not be `small' but simply
+      `appropriate' '' for the control design. Fidelity is not the criterion, fitness
+      for the design decision is.
+    \item Diagnostic~4 sits squarely on the second claim. Level~2 genuinely is a
+      better description of the physics than Level~1, and past the margin threshold
+      it still changes no design decision. Box does not predict that. Skelton does,
+      and neither of them says how to check it on a given vehicle.
+    \end{outline}
+  \item \textbf{The gap we address.} Skelton's criterion has been available for
+    thirty-five years and remains qualitative, since ``appropriate'' is not a
+    computable predicate. The identification-for-control
+    tradition~\cite{ljung1999system,gevers2005identification} formalized the idea for
+    experiment design without producing a field test a small-boat practitioner can
+    run. Diagnostic~4 is an attempt at that test for this vehicle class.
+  \item \textbf{What sets how much model you need is the economics, not the physics:}
+    the cost of the platform, access to the test environment and above all the ratio
+    of hardware-test cost to simulation-test cost. A cheap vehicle on an accessible
+    lake and an expensive vehicle with a narrow at-sea window warrant different
+    answers to an identical modeling question.
+  \item \textbf{What a model of this class \emph{can} support}, in rough order of
+    increasing demand:
+    \begin{outline}
+    \item \textbf{D1: choose a control architecture.} Weakest requirement. The model
+      need only get the dominant structure right: how many states, which couplings
+      matter, where the dominant timescale sits.
+    \item \textbf{D2: verify the architecture end-to-end.} Does the control system
+      function, and function correctly, when wired up whole? Catches structural and
+      integration faults on the bench rather than on the water.
+    \item \textbf{D3: compare architectures relatively.} What is the cost and benefit
+      of adding a feedforward term or a rate filter? Differences between
+      architectures survive model error far better than absolute values do. Caveat:
+      each candidate must be tuned before it can be compared, so tuning quality
+      confounds the comparison unless explicitly controlled for.
+    \item \textbf{D4: rehearse the tuning process.} Practice the procedure and build
+      the tooling that will be used to tune in the field. The deliverable is the
+      tuning workflow, not the gains it produces.
+    \end{outline}
+  \item \textbf{What the classical side contributes back.} Gain and phase margin state
+    how much model error a design tolerates. That is a cost-side metric of exactly the
+    kind missing from the sufficiency literature above: once the discrepancy between
+    two model levels falls inside the margin of the controller designed from the
+    simpler one, the extra fidelity buys nothing for that design. The margin is the
+    transfer budget. \emph{Developed as Diagnostic~4, Sec.~\ref{sec:diagnostics}.}
+  \item \textbf{What it \emph{cannot} support (D5):} identifying parameters and
+    designing the controller in simulation and then expecting zero- or one-shot
+    transfer. Saying this plainly is unusual, and it is the honest answer to ``why
+    model at all if you re-tune in the field anyway.'' You are buying D1--D4. You are
+    not buying the gains.
+  \item Our three levels map onto these decisions rather than onto a fidelity ladder:
+    Level~1 serves D1, Level~2 serves D2 and D3, Level~3 bounds how far D4 could be
+    pushed with more data. \emph{Returned to in Sec.~\ref{sec:discussion}.}
+  \item \Open This ladder merges the earlier purpose framing (choose / compare /
+    parameterize) with the sim-to-real framing. D4 is the piece with no counterpart
+    in the earlier version, and is arguably the most defensible claim we can make,
+    since it is the one we can demonstrate rather than assert.
+  \item \Open Placement. This is long for an introduction bullet. Candidate: promote to a short standalone section before
+    Sec.~\ref{sec:methodology}, so the methodology can be presented as answering
+    D1--D4 explicitly.
+  \item \Open Scope of the claim. Is the economics argument (hardware-test cost vs.\
+    simulation-test cost) something we can support in this paper, or a position
+    statement we should flag as future work? It currently reads as the former.
+  \end{outline}
+\item \textbf{Scope.} Single thruster plus rudder, under 7~m, field-identified
+  parameters.
+  \begin{outline}
+  \item Underactuated rudder steering is the more interesting case: control
+    authority is an explicit function of forward speed, so the steering and speed
+    channels cannot be treated as independent design problems. Differential or
+    holonomic thrust reframes the problem rather than simplifying it, and removes
+    precisely this coupling.
+  \item It is also the more representative case for the installed base of small
+    craft, even though the USV literature is dominated by differential-thrust
+    research platforms.
+  \item Distinct as well from large vessels, where scale-model tow-tank testing is a
+    reasonable route to parameters, so identification is not the binding constraint.
+  \end{outline}
+\item \textbf{Contributions.}
+  \begin{outline}
+  \item A three-level model spectrum methodology for this class of USV.
+  \item Cross-model diagnostics that identify structurally salient dynamics.
+  \item A margin-based sufficiency test (Diagnostic~4) that reports the operating
+    point at which added model fidelity stops changing the control design, replacing
+    a judgment call with a computed number.
+  \item An empirical demonstration of when physical structure is required (black-box
+    simulation failure under limited data).
+  \item A targeted data collection framework motivated by diagnostic gaps.
+  \end{outline}
+\end{outline}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Closely Related Work}
+\label{sec:related}
+
+Organizing axis: what is the least complex model structure that still supports
+control design, and what does the available excitation actually permit one to
+identify? Together these bound the cost of added fidelity, which is the quantity
+that is missing when complexity is chosen by fit alone.
+
+\subsection{Response Models as the Minimal Control-Oriented Description}
+\label{sec:rw-response}
+
+\begin{outline}
+
+\item \textbf{Nomoto, Taguchi, Honda, Hirano (1957)}~\cite{nomoto1957steering},
+  \emph{On the Steering Qualities of Ships}, Int.\ Shipbuilding Progress 4(35),
+  354--370. \nolink{No digital copy in circulation.}
+  \begin{outline}
+  \item \Point Origin of the first-order steering model
+    $r(s)/\delta(s)=K/(Ts+1)$. Collapses coupled sway-yaw into a gain and a time
+    constant that map directly onto compensator decisions: $T$ sets achievable
+    closed-loop bandwidth, $K$ sets loop gain. This is exactly our Level-1
+    structure, applied to surge as well as yaw.
+  \item \Open Developed for large displacement vessels. Does the first-order form
+    hold for a sub-7~m hull? Sonnenburg's data say yes at higher speeds; we should
+    state this rather than assume it.
+  \end{outline}
+
+\item \textbf{Fossen (2011)}~\cite{fossen2011handbook},
+  \emph{Handbook of Marine
+  Craft Hydrodynamics and Motion Control}, Wiley. \doilink{10.1002/9781119994138}
+  \begin{outline}
+  \item \Point Canonical reduction of the linearized maneuvering equations to the
+    Nomoto form and the source of our notation. Situates the response model in the
+    broader hierarchy, which is the hierarchy we are traversing.
+  \item \Open We hold the 2011 first edition; a 2021 second edition exists
+    (\doilink{10.1002/9781119575016}). Cite whichever we actually work from.
+  \end{outline}
+
+\item \textbf{{\AA}str{\"o}m and K{\"a}llstr{\"o}m (1976)}~\cite{astrom1976identification},
+  \emph{Identification of Ship Steering Dynamics}, Automatica 12(1), 9--22.
+  \doilink{10.1016/0005-1098(76)90064-9}
+  \begin{outline}
+  \item \Point Founds the identification side of this tradition: linear steering
+    dynamics estimated from full-scale trial records by maximum likelihood.
+    Supports our central claim that the binding constraint is experimental, not
+    algorithmic.
+  \item \Open They use ML with a Kalman filter; we use ordinary least squares on a
+    discrete ARX(1,1). Do we need to justify OLS, or is it self-evident at 10~Hz on
+    a short clean record? Probably one sentence.
+  \end{outline}
+
+\item \textbf{K{\"a}llstr{\"o}m and {\AA}str{\"o}m (1981)}~\cite{kallstrom1981experiences},
+  \emph{Experiences of System Identification Applied to Ship Steering},
+  Automatica 17(1), 187--198. \doilink{10.1016/0005-1098(81)90094-7}
+  \nolink{No local copy. Try Lund LUP; the 1976 companion is free there.}
+  \begin{outline}
+  \item \Point Practical follow-on: the maneuvers a vessel can safely execute limit
+    which parameters are distinguishable. This is the cleanest available statement
+    of the excitation-limits-identifiability point.
+  \item \Open Need the PDF to confirm this claim is actually made in these terms
+    before we lean on it. Currently sourced from secondary description.
+  \end{outline}
+
+\end{outline}
+
+\subsection{Physics-Based Maneuvering Models and the Identifiability Barrier}
+\label{sec:rw-physics}
+
+\begin{outline}
+
+\item \textbf{Abkowitz (1964)}~\cite{abkowitz1964lectures},
+  \emph{Lectures on
+  Ship Hydrodynamics: Steering and Manoeuvrability}, Report Hy-5, Lyngby.
+  \nolink{No digital copy in circulation.}
+  \begin{outline}
+  \item \Point The canonical high-fidelity structure: third-order truncated Taylor
+    expansion of hydrodynamic forces about steady straight-line motion. Cited for
+    provenance as the pole opposite Nomoto.
+  \item \Open Cite directly, or via a secondary account (Fossen Ch.~7, Sonnenburg
+    diss.\ Sec.~2.1) that we can actually read? Leaning secondary.
+  \end{outline}
+
+\item \textbf{Yasukawa and Yoshimura (2015)}~\cite{yasukawa2015mmg},
+  \emph{Introduction of MMG Standard Method for Ship Maneuvering Predictions},
+  J.\ Marine Sci.\ Tech.\ 20(1), 37--52. \doilink{10.1007/s00773-014-0293-y}
+  \nolink{Open access; Springer redirect blocked scripted retrieval.}
+  \begin{outline}
+  \item \Point The modular alternative to Abkowitz and the current standard for
+    ship maneuvering prediction. Establishes that the high-fidelity pole is a live
+    practice, not a historical artifact.
+  \item \Open Does MMG earn its space in a 6-page paper, or is Abkowitz alone
+    enough to anchor the pole? Candidate cut if we run long.
+  \end{outline}
+
+\item \textbf{Su{\'a}rez, Berndt, Abdel-Maksoud (2026)}~\cite{suarez2026regularized},
+  \emph{Regularized Machine Learning for System Identification of Ship
+  Free-Running Manoeuvres from CFD-Based Synthetic Data}. \arxivlink{2606.17121}
+  \begin{outline}
+  \item \Point \emph{The citation our cost-of-fidelity argument rests on.}
+    Abkowitz derivatives are strongly multicollinear; conditioning degrades as the
+    coefficient set grows; the effective remedies are regularization and more
+    diverse excitation, not better optimization. ``Conditioning degrades as the
+    coefficient set grows'' is the cost of added fidelity stated as a measurable
+    quantity.
+  \item \Point Their data are CFD-generated from idealized zigzag and turning
+    maneuvers, which sharpens rather than weakens the point: if a coefficient set is
+    ill-conditioned under noise-free synthetic excitation designed expressly for the
+    task, it will not be recovered from a short trial on the water.
+  \item \Open Preprint, under review. If it has not landed by submission, restore
+    Luo and Li (2017), \doilink{10.1016/j.apor.2017.06.008}, alongside it rather
+    than instead of it; that paper attributes parameter drift to dynamic
+    cancellation among linear derivatives plus multicollinearity among nonlinear
+    ones.
+  \item \Open Do we run Ridge on our own Level-2 parameters as a further diagnostic?
+    Cheap to do, and it would make the citation reciprocal. Tracked at
+    Sec.~\ref{sec:l2}; note that Diagnostic~4 is already taken by the margin test.
+  \end{outline}
+
+\item \textbf{Xu and Guedes Soares (2025)}~\cite{xu2025review},
+  \emph{Review of
+  System Identification for Manoeuvring Modelling of Marine Surface Ships},
+  J.\ Marine Sci.\ Appl.\ 24, 459--478. \doilink{10.1007/s11804-025-00681-w}
+  \begin{outline}
+  \item \Point Single citation covering ``this difficulty is general, not specific
+    to one method or one hull.'' Saves us three or four individual citations.
+  \item \Open Confirm it addresses small USVs and not only ship-scale vessels. If
+    ship-only, we must say so rather than imply generality we have not checked.
+  \end{outline}
+
+\item \textbf{Alexandersson, Mao, Ringsberg (2022)}~\cite{alexandersson2022system},
+  \emph{System Identification of Vessel Manoeuvring Models}, Ocean Engineering
+  266, 112940. \doilink{10.1016/j.oceaneng.2022.112940}
+  \begin{outline}
+  \item \Point Identified coefficients need not be individually meaningful even
+    when aggregate prediction is good. This separates ``predicts well'' from
+    ``parameters mean something,'' which is precisely the interpretability axis our
+    three levels are arranged along.
+  \item \Open Confirm the vessel scale and data source (model tests vs.\ full
+    scale) so we characterize the result accurately.
+  \end{outline}
+
+\end{outline}
+
+\subsection{Control-Oriented Identification of Small Uncrewed Craft}
+\label{sec:rw-usv}
+
+\begin{outline}
+
+\item \textbf{Sonnenburg and Woolsey (2013)}~\cite{sonnenburg2013modeling},
+  \emph{Modeling, Identification, and Control of an Unmanned Surface Vehicle},
+  J.\ Field Robotics 30(3), 371--398. \doilink{10.1002/rob.21452}
+  \\ Companion: \textbf{Sonnenburg \emph{et al.}\ (2010)}~\cite{sonnenburg2010control},
+  OCEANS 2010 Seattle. \doilink{10.1109/OCEANS.2010.5664297}
+  \nolink{Local copies are the 2013 dissertation (superset) and the extended VT report.}
+  \begin{outline}
+  \item \Point \emph{The nearest antecedent.} A 4.8~m planing RHIB; objective stated
+    as a model ``sufficiently rich for model-based control design, sufficiently
+    simple to allow parameter identification.'' Candidate speed and steering models
+    identified and compared from field trials.
+  \item \Point Two-stage identification: steady-state input-output maps from
+    constant-input maneuvers first, then transient parameters with those gains
+    fixed. Our two-phase separation of quadratic drag from thrust gain follows the
+    same logic of estimating each parameter where it dominates. \emph{Cite again in
+    Sec.~\ref{sec:l2}.}
+  \item \Point Their conclusion is that no single model wins: Nomoto-with-sideslip
+    below roughly 2.6~m/s, plain Nomoto above, deployed as a speed-scheduled
+    combination.
+  \item \Point \emph{How they evaluate sufficiency} (answers the question raised in
+    Sec.~\ref{sec:intro}). Candidates are scored by a cost function evaluated on
+    held-out validation maneuvers and tabulated per model and per regime, for both
+    forward and sternward motion. Selection then applies a parsimony judgment: the
+    full linear steering model wins marginally on cost in the stable regimes, but its
+    two extra parameters are judged ``not worth the slight edge in turn rate
+    estimation.''
+  \item \Point \emph{This is the point we build on.} Their cost function measures the
+    benefit of added parameters. Nothing in the procedure measures the cost, and no
+    accepted metric for it exists, so the trade is necessarily settled by expert
+    intuition. Read generously, this is the strongest prior work reaching the limit
+    of the available apparatus rather than declining to use it. Our cross-model
+    diagnostics are an attempt to put evidence on the vacant side of that scale.
+  \item \Point Two differences define our contribution. Their vessel steers by
+    vectored thrust, which removes the speed-dependent control effectiveness that
+    dominates rudder-steered craft. And their comparison stops at structured
+    models, with no data-driven level to bound residual complexity.
+  \item \Open Their envelope reaches 22~kn with regime transitions; ours is 0--3~m/s
+    in displacement only. Does their speed-scheduling conclusion transfer, or is it
+    an artifact of crossing into planing?
+  \item \Open Should we adopt their steady-state-first procedure for Level~1 too,
+    rather than fitting ARX directly? Would make the two levels methodologically
+    consistent.
+  \end{outline}
+
+\item \textbf{Eriksen and Breivik (2017)}~\cite{eriksen2017modeling},
+  \emph{Modeling, Identification and Control of High-Speed ASVs: Theory and
+  Experiments}, LNCIS 474, 407--431. \doilink{10.1007/978-3-319-55372-6_19}
+  \begin{outline}
+  \item \Point Demonstrates the full path from field identification to deployed
+    control: an 8.45~m ASV spanning displacement, semi-displacement, and planing,
+    with four controllers tested in full scale. Evidence that control-oriented
+    identification pays off, which is the premise we inherit.
+  \item \Open At 8.45~m with rich instrumentation. Which parts of the method
+    survive our sensor suite (GPS speed at 5~Hz, IMU yaw rate)? Worth one explicit
+    sentence rather than silence.
+  \end{outline}
+
+\item \textbf{Muske, Ashrafiuon, Haas, McCloskey, Flynn (2008)}~\cite{muske2008identification},
+  \emph{Identification of a Control Oriented Nonlinear Dynamic USV Model},
+  ACC 2008, 562--567. \doilink{10.1109/ACC.2008.4586551}
+  \begin{outline}
+  \item \Point \emph{Direct precedent for our Level-2 method.} Drag parameters
+    identified from dedicated deceleration and terminal-velocity tests, with thrust
+    deliberately excluded from the regression. Same reasoning as our coasting-segment
+    identification of $d_2$. \emph{Cite again in Sec.~\ref{sec:l2}.}
+  \item \Open They use a model boat in controlled conditions. Does coast-down
+    survive wind and current in the field? Our dataset has limited coasting; is one
+    long deceleration enough, and how do we defend that?
+  \end{outline}
+
+\item \textbf{Hann, Sirisena, Wongvanich (2010)}~\cite{hann2010simplified},
+  \emph{Simplified Modeling Approach to System Identification of Nonlinear Boat
+  Dynamics}, ACC 2010, 5218--5223. \doilink{10.1109/ACC.2010.5530459}
+  \nolink{No local copy.}
+  \begin{outline}
+  \item \Point Simplified identification of nonlinear boat dynamics with
+    deliberately tractable experiments.
+  \item \Open Unclear how much this adds beyond Muske. Candidate cut if the
+    overlap is large; decide once we have read it.
+  \end{outline}
+
+\item \textbf{Wirtensohn, Reuter, Blaich, Schuster, Hamburger (2013)}~\cite{wirtensohn2013modelling},
+  \emph{Modelling and Identification of a Twin Hull-Based Autonomous Surface
+  Craft}, MMAR 2013, 121--126. \doilink{10.1109/MMAR.2013.6669892}
+  \begin{outline}
+  \item \Point Concrete example of a complete identification campaign at small-ASV
+    scale. Useful as the template we are deviating from.
+  \item \Open Differential thrust, so control effectiveness is not speed-dependent
+    the way ours is. This supports our scope claim in Sec.~\ref{sec:rw-position};
+    make sure we use it there rather than overstating its similarity here.
+  \end{outline}
+
+\item \textbf{Morel, Orihuela, Bejarano (2023)}~\cite{morel2023modelling},
+  \emph{Modelling and Identification of an Autonomous Surface Vehicle}, MARTECH
+  2023, Castell{\'o} de la Plana.
+  \\ Journal version: \textbf{Morel, Orihuela, Combastel, Bejarano
+  (2025)}~\cite{morel2025practical}, \emph{Practical Identification Approach for the
+  Actuation Dynamics of Autonomous Surface Vehicles with Minimal Instrumentation},
+  Ocean Engineering 319, 120098. \doilink{10.1016/j.oceaneng.2024.120098} /
+  \arxivlink{2410.00631}
+  \begin{outline}
+  \item \Point \emph{Closest match to our instrumentation constraint.} Premise is
+    that the sensor suite of a small autonomous craft, not the estimator, is the
+    binding constraint. The 2023 workshop paper names the vessel (Yellowfish ASV)
+    and tabulates parameters; the 2025 journal paper generalizes the method.
+  \item \Open They model \emph{actuation} dynamics explicitly. Do we need an
+    actuator model, or is our normalized RCOU-to-force mapping adequate? If we skip
+    it, say why, because this paper makes the omission conspicuous.
+  \end{outline}
+
+\item \textbf{Tanveer and Ahmad (2022)}~\cite{tanveer2022yaw},
+  \emph{Unmanned
+  Surface Vehicle: Yaw Modeling and Identification}, ICEANS 2022.
+  \arxivlink{2303.13064}
+  \begin{outline}
+  \item \Point Honest illustration of what a single short experiment supports: a
+    second-order yaw model from pool trials at 59\% cross-validation fit. Supports
+    our data-coverage claim from the low end.
+  \item \Open Twin thruster, pool trials, two-page paper. Is it too weak to carry
+    weight, or is its weakness exactly the point? Currently used as the latter.
+  \end{outline}
+
+\item \textbf{Synthesis for this subsection.} The literature converges on
+  simplified, field-identified models as the right instrument at this scale. What it
+  does not do is \emph{retain} more than one. Each study selects a structure,
+  identifies it, and proceeds to control; comparison, where it occurs, is used to
+  discard alternatives rather than to interrogate the dynamics.
+
+\end{outline}
+
+\subsection{Data-Driven and Grey-Box Alternatives}
+\label{sec:rw-datadriven}
+
+\begin{outline}
+
+\item \textbf{Woo, Park, Yu, Kim (2018)}~\cite{woo2018dynamic},
+  \emph{Dynamic
+  Model Identification of Unmanned Surface Vehicles Using Deep Learning Network},
+  Applied Ocean Research 78, 123--133. \doilink{10.1016/j.apor.2018.06.011}
+  \nolink{No local copy. Highest-priority acquisition.}
+  \begin{outline}
+  \item \Point LSTM reduces surge error 76.9\% and yaw-rate error 60.7\% versus
+    linear models. Our Level-3 result directly challenges the generality of this
+    headline, so the paper is the foil for our central empirical claim.
+  \item \Open \emph{Must verify before we assert it:} do they report one-step-ahead
+    prediction only, with no closed-loop simulation? Our Sec.~\ref{sec:rw-position}
+    gap~2 depends entirely on this being true. Do not submit without checking.
+  \end{outline}
+
+\item \textbf{Xu, Han, Cheng, Cheng, Ge (2022)}~\cite{xu2022pinn},
+  \emph{A
+  Physics-Informed Neural Network for the Prediction of Unmanned Surface Vehicle
+  Dynamics}, JMSE 10(2), 148. \doilink{10.3390/jmse10020148}
+  \begin{outline}
+  \item \Point Embedding 3-DOF structure in the training loss improves
+    generalization from small datasets. Supports our ``structure is regularization''
+    claim from the opposite direction: they add structure to a network, we measure
+    what its absence costs.
+  \item \Open How small is their ``small''? If it is far larger than our 130~s, the
+    comparison needs qualifying.
+  \end{outline}
+
+\item \textbf{Zhang, Li, Xiong, He (2024)}~\cite{zhang2024gbm},
+  \emph{GBM-ILM:
+  Grey-Box Modeling Based on Incremental Learning and Mechanism for Unmanned Surface
+  Vehicles}, JMSE 12(4), 627. \doilink{10.3390/jmse12040627}
+  \begin{outline}
+  \item \Point Represents the current hybrid state of the art: mechanism model plus
+    incremental learning. Establishes that the field's answer to data hunger is to
+    reintroduce structure, which is our answer too, arrived at by a different route.
+  \item \Open Is this the best representative, or is there a stronger 2025--26
+    grey-box USV paper? One search before submission.
+  \end{outline}
+
+\item \textbf{Xue, Wang, Qin, Deng (2022)}~\cite{xue2022probabilistic},
+  \emph{Probabilistic Identification of Unmanned Surface Vehicles Using Efficient
+  Gaussian Processes with Uncertainty Propagation}, ICUS 2022, 1004--1009.
+  \doilink{10.1109/ICUS55513.2022.9986638} \nolink{No local copy.}
+  \begin{outline}
+  \item \Point An alternative answer to ``how much should you trust this model'':
+    propagate uncertainty so model confidence is available to the controller.
+  \item \Open Lowest-priority citation in the section. Cut if we run long.
+  \end{outline}
+
+\item \textbf{Synthesis for this subsection.} Unstructured learning is data-hungry
+  in exactly the way field identification of a small USV cannot accommodate. Our
+  Level-3 NARX is not a competitor to these methods but a deliberately
+  unregularized reference point, whose closed-loop failure quantifies how much
+  regularization the physical structure supplies.
+
+\end{outline}
+
+\subsection{Positioning of This Work}
+\label{sec:rw-position}
+
+\begin{outline}
+\item \textbf{Gap 1: hierarchy as selection, not retention.} Prior work retains one
+  level and discards the rest. We retain all three and use disagreement between them
+  as a diagnostic that localizes which dynamics are structurally significant and
+  which are simply unobserved. Against~\cite{sonnenburg2013modeling,eriksen2017modeling}.
+  \begin{outline}
+  \item \Open Is this alone strong enough for an OCEANS contribution, or does it
+    read as methodology-only? Gaps 2 and 3 may be doing more work.
+  \end{outline}
+\item \textbf{Gap 2: evaluation protocol.} Data-driven marine models are
+  predominantly evaluated on one-step prediction, obscuring the closed-loop
+  divergence that determines usefulness for control design. We report both metrics
+  for the same model and dataset. Against~\cite{woo2018dynamic}.
+  \begin{outline}
+  \item \Open Contingent on the Woo verification above.
+  \end{outline}
+\item \textbf{Gap 3: vessel class.} The small, single-thruster, rudder-steered
+  vessel is underrepresented: closest prior work uses vectored
+  thrust~\cite{sonnenburg2013modeling}, differential
+  thrust~\cite{wirtensohn2013modelling,tanveer2022yaw}, or a substantially larger
+  platform~\cite{eriksen2017modeling}. Rudder steering makes control authority an
+  explicit function of forward speed, the coupling our diagnostics target.
+  \begin{outline}
+  \item \Open Do we need a citation establishing that rudder-steered small USVs
+    matter operationally, or is the platform's existence sufficient warrant?
+  \end{outline}
+\item \textbf{Framing.} The intended use is not only compensator synthesis but the
+  simulation environments in which autonomy is developed and
+  tested~\cite{bingham2019gazebo}. This aligns the work with identification for
+  control~\cite{skelton1989model,ljung1999system,gevers2005identification}, where
+  model quality is judged against the design decision the model informs rather than
+  fit statistics alone.
+  \begin{outline}
+  \item \emph{Resolved:} the sim-to-real framing in Sec.~\ref{sec:intro} makes the
+    simulator the primary consumer of these models, not a secondary one, so the
+    citation is on-topic rather than incidental. Keep.
+  \end{outline}
+\end{outline}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Model Spectrum Methodology}
+\label{sec:methodology}
+
+\begin{outline}
+\item \textbf{Framing.} Three levels, each identified from the same dataset. Each
+  answers a different design question.
+\end{outline}
+
+\subsection{Level~1: First-Order Linear SISO Models}
+\label{sec:l1}
+\begin{outline}
+\item Nomoto-style first-order transfer functions for surge and yaw, treated as
+  independent SISO systems.
+  \begin{outline}
+  \item Surge: $G_v(s) = K/(\tau s + 1)$, input throttle (normalized), output speed.
+  \item Yaw: $G_r(s) = K_r/(\tau_r s + 1)$, input rudder, output yaw rate.
+  \end{outline}
+\item \textbf{Identification.} Discrete-time ARX(1,1) by ordinary least squares;
+  convert poles to physical $\tau$ and $K$.
+\item \textbf{Design utility.} Directly readable time constants and gains for PID
+  tuning; reveals dominant timescale per channel.
+\item \textbf{Limitation.} Linear, decoupled; ignores quadratic drag, surge-yaw
+  coupling, and operating-regime dependence. Alone, risks a compensator
+  architecture mismatch.
+\item \Open Adopt Sonnenburg's steady-state-first procedure here for consistency
+  with Level~2? See Sec.~\ref{sec:rw-usv}.
+\end{outline}
+
+\subsection{Level~2: Nonlinear State-Space Model}
+\label{sec:l2}
+\begin{outline}
+\item Physics-based two-state model from planar rigid-body equations:
+  \begin{outline}
+  \item Surge: $\dot{v} = k_T u - d_2 v|v|$.
+  \item Yaw: $\dot{r} = k_\delta \delta - d_r r$.
+  \end{outline}
+\item Quadratic drag $v|v|$ is the key nonlinearity relative to Level~1.
+\item \textbf{Two-phase identification} (precedent:
+  \cite{muske2008identification,sonnenburg2013modeling}):
+  \begin{outline}
+  \item Phase 1 (coasting, $u\approx 0$): identify $d_2$ from zero-thrust
+    deceleration segments.
+  \item Phase 2 (powered): identify $k_T$ with $d_2$ fixed.
+  \item Decoupling avoids conflating thrust and drag in a joint fit.
+  \end{outline}
+\item \textbf{Design utility.} Reveals the drag structure relevant to feedforward
+  compensation and speed-hold steady state, while retaining physical
+  interpretability.
+\item \Open Report a conditioning or regularization check on the joint fit, per
+  \cite{suarez2026regularized}, to make the identifiability argument concrete on our
+  own data rather than only by citation.
+\end{outline}
+
+\subsection{Level~3: Black-Box NARX Model}
+\label{sec:l3}
+\begin{outline}
+\item NARX multilayer perceptron predicting $[v(k{+}1), r(k{+}1)]$ from $n$ lags of
+  $[v, r, \text{throttle}, \text{rudder}]$. MIMO, so it can discover coupling the
+  structured models assume away.
+\item \textbf{Architecture.} 3 lags, one hidden layer (20 neurons), ReLU,
+  StandardScaler, early stopping.
+\item \textbf{Training.} Chronological 80/20 split (first 100~s train, last 30~s
+  test) to avoid temporal leakage.
+\item \textbf{Evaluation.} One-step prediction \emph{and} closed-loop simulation
+  reported separately; these diverge significantly at this data scale.
+\item \textbf{Design utility.} Bounds the benefit of added complexity given
+  available data; motivates richer collection; reference point as the dataset grows.
+\end{outline}
+
+\subsection{Cross-Model Diagnostics}
+\label{sec:diagnostics}
+\begin{outline}
+\item The spectrum's value is the comparative analysis across levels, not the three
+  fits individually.
+\item \textbf{Diagnostic 1: speed-dependent rudder gain.} Does replacing constant
+  $K_r$ with $K_r v$ improve the yaw-rate fit? Result: no improvement with current
+  data ($\Delta R^2 = -0.03$), which flags a gap in data coverage rather than
+  absence of the effect.
+\item \textbf{Diagnostic 2: drag nonlinearity.} Linear vs.\ quadratic fit to
+  coasting deceleration. Result: quadratic dominant, $\Delta R^2 = +0.20$,
+  $D_1 \approx 0$, $D_2 = 0.44$~m$^{-1}$.
+\item \textbf{Diagnostic 3: rudder-induced surge drag.} Correlation of $\delta^2$
+  with surge residuals. Result: negligible, $r = -0.08$; coupling term not
+  warranted.
+\item \textbf{Diagnostic 4: is the added fidelity inside the robustness margin?}
+  The first three diagnostics ask whether a term is \emph{present} in the data. This
+  one asks whether it \emph{changes the design}, which is the question
+  Sec.~\ref{sec:intro} argues has no accepted metric. It does have one: the
+  robustness margin of the compensator is a budget for model error, so the test is
+  whether the Level-1 to Level-2 discrepancy fits inside it.
+  \begin{outline}
+  \item \textbf{Step 1.} Design a nominal compensator from Level~1 alone (PI on
+    surge, P or PI on yaw). Record gain margin, phase margin and the complementary
+    sensitivity $T(j\omega)$.
+  \item \textbf{Step 2.} Linearize Level~2 about operating points spanning the tested
+    envelope. For surge the quadratic drag gives a speed-scheduled first-order plant,
+    $\tau(v_0) = 1/(2 d_2 v_0)$ and $K(v_0) = k_T/(2 d_2 v_0)$, so both the gain and
+    the time constant fall as $1/v_0$. With the identified $d_2 = 0.438$ and
+    $k_T = 3.963$ this is roughly $\tau: 1.1 \rightarrow 0.4$~s and
+    $K: 4.5 \rightarrow 1.6$ across $v_0 = 1$ to $2.9$~m/s, against Level~1's fixed
+    $\tau = 1.95$~s, $K = 6.42$.
+  \item \textbf{Step 3.} Form the multiplicative error
+    $\ell(\omega, v_0) = |G_2(j\omega, v_0)/G_1(j\omega) - 1|$ and test robust
+    stability, $\|\ell T\|_\infty < 1$. The cheap version that will fit in a short
+    paper is the gain ratio $K(v_0)/K_1$ against the gain margin.
+  \item \textbf{Step 4, the useful output.} The test does not return yes or no. It
+    returns \emph{the speed at which Level~1 stops being sufficient}, which is an
+    actionable number for a control designer and a direct answer to ``enough for
+    what.''
+  \item \textbf{Expected findings, to be confirmed.} For yaw, Level~2 reduces to
+    $r/\delta = 0.771/(0.523 s + 1)$ against Level~1's $0.771/(0.471 s + 1)$: the
+    same DC gain and an 11\% difference in time constant, so $\ell$ is small and the
+    test should pass across the envelope. Level~2 buys nothing for yaw control, and
+    we should say so. For surge the gain falls by roughly a factor of four across the
+    envelope, so the test should fail at the upper end. Note the failure mode is
+    sluggishness rather than instability, because quadratic drag is stabilizing: the
+    Level-1 design is conservative at speed, not unsafe.
+  \item \Open Scope. The full $\|\ell T\|_\infty$ treatment may not fit this paper.
+    Minimum viable version: report $K(v_0)/K_1$ against the Level-1 gain margin and
+    name the crossover speed. Full treatment flagged as future work.
+  \end{outline}
+\item \textbf{Implication.} Diagnostics 1--3 inform the Level-2 structure and specify
+  what the next data collection must target. Diagnostic~4 converts the sufficiency
+  question from a judgment into an arithmetic one, and is the piece that lets this
+  work claim a method rather than a position.
+\end{outline}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Experimental Platform and Data Collection}
+\label{sec:experiment}
+
+\begin{outline}
+\item \textbf{Vehicle.} [model/name], approx.\ [length]~m, single propeller plus
+  rudder, ArduPilot autopilot, GPS and IMU.
+  \begin{outline}
+  \item Inputs: RC throttle (RCOU\_C3) and rudder (RCOU\_C1), 1100--1900~$\mu$s PWM.
+  \item Outputs: GPS speed (5~Hz), IMU yaw rate (137~Hz).
+  \end{outline}
+\item \textbf{Data cleaning.} Multi-rate streams aligned to a 10~Hz common grid by
+  linear interpolation; RC commands normalized to $[-1,1]$; one 29.3~s gap (vessel
+  repositioning) handled by segmentation.
+\item \textbf{Current dataset.} Single step-response trial, 130~s working window
+  (150--280~s of a 341~s recording), throttle 0--39\%, speed 0--2.9~m/s.
+  Intentionally minimal: a proof of concept for the workflow.
+\item \textbf{Planned dataset (full paper).} Multiple trials spanning throttle
+  0--100\%, dedicated rudder sweeps at fixed speeds to resolve speed-dependent gain,
+  and maneuvers spanning displacement, semi-displacement, and planing.
+  [describe vehicle speed range and transition speeds]
+\end{outline}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Results}
+\label{sec:results}
+
+\subsection{Level~1: First-Order SISO}
+\begin{outline}
+\item Table: identified $\tau$ and $K$ for surge and yaw.
+\item Simulation $R^2$ for both channels.
+\item Figure: measured vs.\ simulated speed and yaw rate.
+\item Note: parameters directly usable for PID design.
+\end{outline}
+
+\subsection{Level~2: Nonlinear State-Space}
+\begin{outline}
+\item Table: identified $k_T$, $d_2$, $k_\delta$, $d_r$.
+\item Compare $d_2$ from coasting vs.\ joint fit; motivate why two-phase is
+  necessary.
+\item Simulation $R^2$ comparison vs.\ Level~1.
+\item Figure: measured vs.\ simulated, combined plot across all three levels.
+\end{outline}
+
+\subsection{Level~3: NARX}
+\begin{outline}
+\item One-step prediction $R^2$ vs.\ closed-loop simulation $R^2$; highlight the gap.
+\item Figure: simulation divergence for surge.
+\item Interpretation: limited data makes black-box models unreliable simulators;
+  physical structure is essential regularization at this data scale.
+\end{outline}
+
+\subsection{Cross-Model Diagnostic Summary}
+\begin{outline}
+\item Summary table: four diagnostics, findings, implication for model and control
+  design.
+\item Diagnostic~4 reported in its minimum viable form: $K(v_0)/K_1$ against the
+  Level-1 gain margin, plus the crossover speed at which Level~1 stops being
+  sufficient for surge.
+\item Key message: the spectrum reveals structure that no single model exposes, and
+  the margin test says which of that structure changes the design.
+\end{outline}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Discussion}
+\label{sec:discussion}
+
+\begin{outline}
+\item \textbf{What the spectrum reveals for this vehicle class.}
+  \begin{outline}
+  \item Surge and yaw are weakly coupled at the speeds tested, so decoupled SISO
+    controllers are a reasonable starting point.
+  \item Quadratic drag is significant: speed-hold controllers need nonlinear
+    feedforward; linear controllers will show speed-dependent steady-state error.
+  \item Speed-dependent rudder gain can neither be confirmed nor denied. This is the
+    primary gap the expanded dataset must fill. If confirmed, gain scheduling or
+    adaptive control is warranted.
+  \end{outline}
+\item \textbf{Implications for compensator architecture.}
+  \begin{outline}
+  \item Level~1 $\rightarrow$ baseline PID structure with identified gains.
+  \item Level~2 $\rightarrow$ nonlinear feedforward for drag on the surge channel,
+    where the margin test is expected to show Level~1 failing at speed. For yaw the
+    two levels nearly coincide, so Level~2 changes nothing and we should say so.
+  \item Gain scheduling on the rudder loop remains open, gated on Diagnostic~1 rather
+    than on Level~2.
+  \item Level~3 $\rightarrow$ motivates MPC or learning-based control once data
+    suffices.
+  \end{outline}
+\item \textbf{Fidelity vs.\ insight: return to D1--D5 (Sec.~\ref{sec:intro}).}
+  \begin{outline}
+  \item State plainly that none of the three levels reaches D5. Even the
+    highest-fidelity model here cannot eliminate experimental fine-tuning, and we
+    should say so rather than let the reader infer otherwise.
+  \item The defensible claim is D1 through D4: the spectrum tells you which
+    architecture to build, lets you verify it end to end, supports relative
+    comparison between candidates and tells you where in the parameter space field
+    tuning will actually be needed so that the tuning workflow can be built in
+    advance.
+  \item \Open Is ``the model does not remove field tuning, but it tells you what to
+    tune and lets you rehearse it'' a strong enough payoff to headline? It is honest,
+    and it is the question most modeling papers decline to answer.
+  \end{outline}
+\item \textbf{Limitations} of the current dataset and what the full study adds.
+\end{outline}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+\label{sec:conclusion}
+
+\begin{outline}
+\item Summarize the three-level spectrum methodology for small underactuated USVs.
+\item Restate the core finding: the spectrum collectively provides more control
+  design guidance than any single model; simple models are not a stepping stone but
+  a persistent design tool.
+\item State what the full dataset will allow: resolution of speed-dependent rudder
+  dynamics, validation across operating regimes and a more definitive comparison of
+  black-box vs.\ structured models.
+\item \textbf{Future work: margin-based sufficiency.} Diagnostic~4 is reported here in
+  its minimum viable form. The extension is to treat the robustness margin as the
+  formal sufficiency criterion across the whole spectrum, computing for each design
+  decision the model level at which further fidelity is provably inert. That would
+  replace the expert judgment identified in Sec.~\ref{sec:rw-usv} with a computable
+  bound, and it generalizes past this vehicle class.
+\item Release the dataset and analysis notebooks as open tools for the USV research
+  community.
+\end{outline}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\nocite{*}
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
