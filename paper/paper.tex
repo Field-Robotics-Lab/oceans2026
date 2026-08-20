@@ -85,8 +85,8 @@ underactuated control design, is not resolvable from a single short trial,
 motivating targeted data collection. A margin-based diagnostic makes the
 sufficiency question computable, reporting the forward speed at which the
 first-order model stops changing the control design. The NARX achieves one-step
-prediction $R^2=1.00$ for speed and $R^2=0.99$ for yaw rate; recursive simulation
-falls to $R^2=0.84$ and $R^2=0.77$, respectively, and exhibits surge divergence,
+prediction $R^2=0.998$ for speed and $R^2=0.991$ for yaw rate; recursive simulation
+falls to $R^2=0.836$ and $R^2=0.768$, respectively, and exhibits surge divergence,
 demonstrating that physical structure provides essential regularization under
 limited data. High-speed segments are retained for subsequent regime-spanning
 analysis.
@@ -293,8 +293,9 @@ validation figure use all viable nontraining slow-region recordings.
   28 source logs containing 30 segments. Each segment is initialized with 2~s of
   measured history. One-step prediction continues to use measured state history;
   recursive simulation feeds predicted states back while replaying recorded throttle.
-  Alternating backgrounds and short gaps mark segment boundaries. NRMSE uses the
-  training-only speed and yaw-rate scales.}
+  Alternating backgrounds and short gaps mark segment boundaries. Reported NRMSE
+  values are segment-macro averages over speed and yaw-rate errors normalized by
+  training-only channel scales.}
   \label{fig:level3-surge-validation}
 \end{figure*}
 
