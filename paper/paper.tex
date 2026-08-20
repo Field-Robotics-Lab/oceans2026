@@ -65,7 +65,7 @@ while its costs in identifiability, experimental burden and obscured design
 insight are not.
 
 We propose a methodology built around a deliberate spectrum of three model levels,
-each identified from the same experimental data: (1) first-order, linear,
+evaluated on common experimental data: (1) first-order, linear,
 single-input single-output (SISO) transfer functions, Nomoto-style models for
 surge and yaw that are immediately interpretable and support controller architecture
 intuition, but risk oversimplification when considered in isolation;
@@ -84,11 +84,12 @@ and reveal that speed-dependent rudder effectiveness, a key coupling for
 underactuated control design, is not resolvable from a single short trial,
 motivating targeted data collection. A margin-based diagnostic makes the
 sufficiency question computable, reporting the forward speed at which the
-first-order model stops changing the control design. The NARX model matches
-one-step prediction accuracy (R2=0.93) but diverges in recursive simulation,
+first-order model stops changing the control design. The NARX achieves one-step
+prediction $R^2=1.00$ for speed and $R^2=0.99$ for yaw rate; recursive simulation
+falls to $R^2=0.84$ and $R^2=0.77$, respectively, and exhibits surge divergence,
 demonstrating that physical structure provides essential regularization under
-limited data. A larger dataset spanning multiple operating regimes is being
-collected to evaluate the full methodology.
+limited data. High-speed segments are retained for subsequent regime-spanning
+analysis.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -240,15 +241,19 @@ with the Level-2 linearization}
   source logs. The empirical slow-region rule excludes a complete segment after at
   least 1~s continuously above 3.4028~m/s.
 \item Source-log-grouped allocation keeps every segment from one recording in one
-  partition. Current training uses 37 logs (40 segments, 28,023 rows); tuning
-  validation uses 8 separate logs (8 segments, 5,840 rows).
+  partition. Current training uses 37 logs (40 segments, 28,023 rows); validation
+  uses every other viable slow-region recording: 28 separate logs (30 segments,
+  16,110 rows).
 \item Ten complete high-speed, planing-consistent segments are retained separately
   for exploratory regime-spanning models and are not used in the current Level~3
   paper results. The label is empirical GPS speed over ground, not a verified physical
   planing transition.
+\item For direct comparison with Levels~1 and 2, the frozen Level~3 model is also
+  evaluated on their original 1,300-row step-response trial. Its 20-sample lag history
+  leaves 1,279 scored rows; the existing Level~1 and 2 results use all 1,300 rows.
 \end{outline}
 
-\textbf{Completed (CV):} The Level~3 dataset and grouped training/tuning allocation
+\textbf{Completed (CV):} The Level~3 dataset and grouped training/validation allocation
 are documented for the current slow-region experiment.
 
 \act{TBD}{Fill the vehicle specifications: make, model, length, mass, propulsion and
@@ -267,14 +272,31 @@ rudder gain that Diagnostic~1 could not settle.}
   against simulated figure.
 \item Level~2: identified parameters, coasting against joint fit for the drag term,
   and fit comparison against Level~1.
-\item Level~3: one-step against recursive simulation fit, and the divergence figure
-  for surge.
+\item Level~3: on all 30 validation segments, one-step macro-NRMSE is 0.084 and
+  recursive macro-NRMSE is 0.425. Speed $R^2$ changes from 0.998 to 0.836 and yaw-rate
+  $R^2$ from 0.991 to 0.768. Recursive simulation covers every validation sample.
+\item On the common 130~s comparison trial, Level~3 one-step $R^2$ is 0.998 for
+  speed and 0.989 for yaw rate; recursive $R^2$ is $-1.988$ and 0.259, respectively.
+  Level~3 scores 1,279 rows after lag initialization, compared with 1,300 rows in the
+  existing Level~1 and 2 results.
 \item Cross-model diagnostic summary: four diagnostics, findings and the implication
   each carries for model and control design.
 \end{outline}
 
-\act{CV}{Level~3 results: one-step against recursive simulation fit, and the surge
-divergence figure. This pair is the paper's central empirical claim.}
+\textbf{Completed (CV):} Level~3 one-step and recursive metrics and the surge
+validation figure use all viable nontraining slow-region recordings.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/level3_surge_validation.pdf}
+  \caption{Level~3 surge prediction on the complete slow-region validation set:
+  28 source logs containing 30 segments. Each segment is initialized with 2~s of
+  measured history. One-step prediction continues to use measured state history;
+  recursive simulation feeds predicted states back while replaying recorded throttle.
+  Alternating backgrounds and short gaps mark segment boundaries. NRMSE uses the
+  training-only speed and yaw-rate scales.}
+  \label{fig:level3-surge-validation}
+\end{figure*}
 
 \act{BB, CV}{Produce the combined figure showing measured data against all three
 levels on one set of axes.}

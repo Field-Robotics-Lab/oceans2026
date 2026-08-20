@@ -30,7 +30,7 @@ while its costs in identifiability, experimental burden and obscured design
 insight are not.
 
 We propose a methodology built around a deliberate spectrum of three model levels,
-each identified from the same experimental data: (1) first-order, linear,
+evaluated on common experimental data: (1) first-order, linear,
 single-input single-output (SISO) transfer functions, Nomoto-style models for
 surge and yaw that are immediately interpretable and support controller architecture
 intuition, but risk oversimplification when considered in isolation;
@@ -49,10 +49,11 @@ and reveal that speed-dependent rudder effectiveness, a key coupling for
 underactuated control design, is not resolvable from a single short trial,
 motivating targeted data collection. A margin-based diagnostic makes the
 sufficiency question computable, reporting the forward speed at which the
-first-order model stops changing the control design. The NARX model matches one-step prediction
-accuracy ($R^2=0.93$) but diverges in closed-loop simulation, demonstrating that
-physical structure provides essential regularization under limited data. A
-larger dataset spanning multiple operating regimes is being collected to
-evaluate the full methodology.
+first-order model stops changing the control design. The NARX achieves one-step
+prediction $R^2=1.00$ for speed and $R^2=0.99$ for yaw rate; recursive simulation
+falls to $R^2=0.84$ and $R^2=0.77$, respectively, and exhibits surge divergence,
+demonstrating that physical structure provides essential regularization under
+limited data. High-speed segments are retained for subsequent regime-spanning
+analysis.
 
 \end{document}
