@@ -32,7 +32,7 @@
     Department of Mechanical and Aerospace Engineering\\
     Naval Postgraduate School\\
     Monterey, CA, USA\\
-    bbingham@nps.edu
+    bbingham@nps.edu, crvogt@nps.edu
   }
 }
 
@@ -85,7 +85,7 @@ underactuated control design, is not resolvable from a single short trial,
 motivating targeted data collection. A margin-based diagnostic makes the
 sufficiency question computable, reporting the forward speed at which the
 first-order model stops changing the control design. The NARX model matches
-one-step prediction accuracy (R2=0.93) but diverges in closed-loop simulation,
+one-step prediction accuracy (R2=0.93) but diverges in recursive simulation,
 demonstrating that physical structure provides essential regularization under
 limited data. A larger dataset spanning multiple operating regimes is being
 collected to evaluate the full methodology.
@@ -119,8 +119,8 @@ VII. Conclusion      & OUTLINE & BB  & Follows VI \\
 \end{tabular}
 \end{table}
 
-\act{team}{Level~1 and 2, the classical models, are BB. Level~3, the black-box
-NARX model, is CV. Add CV's contact address before submission.}
+\textbf{Team assignment:} Level~1 and 2, the classical models, are BB. Level~3,
+the black-box NARX model, is CV.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Introduction}
@@ -170,7 +170,7 @@ two independent bounds on useful fidelity and the Box versus Skelton distinction
   \cite{eriksen2017modeling,muske2008identification,wirtensohn2013modelling,%
   morel2025practical}.
 \item Data-driven and grey-box alternatives~\cite{woo2018dynamic,xu2022pinn,%
-  zhang2024gbm}, and the one-step versus closed-loop evaluation gap.
+  zhang2024gbm}, and the one-step versus recursive-simulation evaluation gap.
 \item Positioning, three gaps: prior work selects one model rather than retaining the
   set; data-driven marine models are evaluated on one-step prediction only; the
   small rudder-steered vessel is underrepresented.
@@ -196,8 +196,10 @@ locator, why it is cited and what remains unresolved}
   identified as discrete ARX(1,1) by ordinary least squares.
 \item Level~2: nonlinear state-space with quadratic drag, identified in two phases so
   that drag is estimated from coasting and thrust gain from powered segments.
-\item Level~3: NARX multilayer perceptron, trained on a chronological split, with
-  one-step prediction and closed-loop simulation reported separately.
+\item Level~3: fixed-tap residual NARX multilayer perceptron with one 64-neuron
+  tanh hidden layer and state-increment outputs, trained using source-log-grouped
+  partitions, with one-step prediction and recursive simulation reported separately.
+  It is a compact NARX NN black-box reference.
 \item Cross-model diagnostics, four in total: speed-dependent rudder gain; drag
   nonlinearity; rudder-induced surge drag; and whether the added fidelity falls
   inside the robustness margin of the design.
@@ -206,9 +208,16 @@ locator, why it is cited and what remains unresolved}
 \act{BB}{Compute Diagnostic~4 on the existing dataset. Minimum viable form is the
 gain ratio against the Level-1 gain margin plus the crossover speed for surge.}
 
-\act{CV}{Level~3 NARX: confirm the architecture, lag count and chronological split
-stated here match the current notebook, and settle whether the black-box level is
-framed as a competitor or as an unregularized reference point.}
+\textbf{Completed (CV):} Level~3 uses 19 fixed state and command taps, one
+64-neuron tanh hidden layer, state-increment outputs and source-log-grouped data
+partitions. State history extends to 0.5~s, throttle history to 2~s and rudder
+history to 1~s.
+
+\textbf{Completed (CV):} Level~3 is framed as a compact NARX NN black-box
+reference.
+
+\textbf{Completed (CV):} Level~3 evaluation uses the terms one-step prediction and
+recursive simulation.
 
 \act{CV}{Level~3 lives on a separate branch; Levels~1 and 2 are on
 \texttt{traditional-models}. Coordinate the merge so Sec.~\ref{sec:methodology} reads
@@ -225,13 +234,22 @@ with the Level-2 linearization}
 \begin{outline}
 \item Vehicle description, autopilot and sensing. Inputs are normalized RC throttle
   and rudder; outputs are GPS speed and IMU yaw rate.
-\item Data cleaning: multi-rate streams aligned to a 10~Hz grid, one gap handled by
-  segmentation.
-\item Current dataset: a single step-response trial, 130~s working window, throttle
-  0--39\%, speed 0--2.9~m/s. Intentionally minimal, a proof of concept.
-\item Planned dataset: multiple trials across the throttle range, dedicated rudder
-  sweeps at fixed speeds, and maneuvers spanning the operating regimes.
+\item Data cleaning: usable manual-mode records are aligned to a 10~Hz grid and
+  segmented at mode, signal-freshness and quality discontinuities.
+\item Current Level~3 dataset: 44,133 samples in 70 slow-region segments from 65
+  source logs. The empirical slow-region rule excludes a complete segment after at
+  least 1~s continuously above 3.4028~m/s.
+\item Source-log-grouped allocation keeps every segment from one recording in one
+  partition. Current training uses 37 logs (40 segments, 28,023 rows); tuning
+  validation uses 8 separate logs (8 segments, 5,840 rows).
+\item Ten complete high-speed, planing-consistent segments are retained separately
+  for exploratory regime-spanning models and are not used in the current Level~3
+  paper results. The label is empirical GPS speed over ground, not a verified physical
+  planing transition.
 \end{outline}
+
+\textbf{Completed (CV):} The Level~3 dataset and grouped training/tuning allocation
+are documented for the current slow-region experiment.
 
 \act{TBD}{Fill the vehicle specifications: make, model, length, mass, propulsion and
 the speed range including any regime transitions.}
@@ -249,13 +267,13 @@ rudder gain that Diagnostic~1 could not settle.}
   against simulated figure.
 \item Level~2: identified parameters, coasting against joint fit for the drag term,
   and fit comparison against Level~1.
-\item Level~3: one-step against closed-loop simulation fit, and the divergence figure
+\item Level~3: one-step against recursive simulation fit, and the divergence figure
   for surge.
 \item Cross-model diagnostic summary: four diagnostics, findings and the implication
   each carries for model and control design.
 \end{outline}
 
-\act{CV}{Level~3 results: one-step against closed-loop simulation fit, and the surge
+\act{CV}{Level~3 results: one-step against recursive simulation fit, and the surge
 divergence figure. This pair is the paper's central empirical claim.}
 
 \act{BB, CV}{Produce the combined figure showing measured data against all three
