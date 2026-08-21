@@ -177,9 +177,9 @@ two independent bounds on useful fidelity and the Box versus Skelton distinction
   small rudder-steered vessel is underrepresented.
 \end{outline}
 
-\act{CV}{Acquire Woo \emph{et al.}\ 2018 and verify that they report one-step
-prediction only. Gap~2 rests on this and it is the foil for the Level-3 result. Do
-not submit without checking.}
+\textbf{Completed (CV):} Woo \emph{et al.}\ evaluate a simplified-model/LSTM
+hybrid through forward simulation on held-out maneuver records
+\cite{woo2018dynamic}; the paper does not support a one-step-only characterization.
 
 \act{BB}{Confirm the Skelton framing carries the ``appropriate, not small''
 criterion as quoted, once the paper is in hand.}
@@ -197,10 +197,13 @@ locator, why it is cited and what remains unresolved}
   identified as discrete ARX(1,1) by ordinary least squares.
 \item Level~2: nonlinear state-space with quadratic drag, identified in two phases so
   that drag is estimated from coasting and thrust gain from powered segments.
-\item Level~3: fixed-tap residual NARX multilayer perceptron with one 64-neuron
-  tanh hidden layer and state-increment outputs, trained using source-log-grouped
-  partitions, with one-step prediction and recursive simulation reported separately.
-  It is a compact NARX NN black-box reference.
+\item Level~3: fixed-tap residual NARX multilayer perceptron with 19 lagged inputs,
+  one 64-neuron tanh hidden layer and two state-increment outputs. The lag structure
+  is a project-specific implementation choice consistent with delayed-input NARX
+  models~\cite{lin1997delay}. The model is trained using source-log-grouped data and
+  evaluated using both one-step prediction and recursive simulation
+  \cite{narendra1990identification}. It serves as a compact black-box reference in
+  the three-level comparison; no claim is made that this architecture is optimal.
 \item Cross-model diagnostics, four in total: speed-dependent rudder gain; drag
   nonlinearity; rudder-induced surge drag; and whether the added fidelity falls
   inside the robustness margin of the design.
@@ -209,7 +212,7 @@ locator, why it is cited and what remains unresolved}
 \act{BB}{Compute Diagnostic~4 on the existing dataset. Minimum viable form is the
 gain ratio against the Level-1 gain margin plus the crossover speed for surge.}
 
-\textbf{Completed (CV):} Level~3 uses 19 fixed state and command taps, one
+\textbf{Completed (CV):} Level~3 uses 19 lagged inputs, one
 64-neuron tanh hidden layer, state-increment outputs and source-log-grouped data
 partitions. State history extends to 0.5~s, throttle history to 2~s and rudder
 history to 1~s.
@@ -315,6 +318,9 @@ specifications.}
   the speeds tested, significant quadratic drag, and a speed-dependent rudder gain
   that the current data can neither confirm nor deny.
 \item Implications for compensator architecture, level by level.
+\item Level~3 provides the black-box comparison. Its high one-step accuracy and
+  weaker recursive simulation show why predictive fit and simulation usefulness
+  should be considered separately.
 \item Return to D1--D5: none of the three levels reaches D5, and saying so plainly is
   the honest position. The defensible claim is D1 through D4.
 \item Limitations of the current dataset and what the full study adds.
