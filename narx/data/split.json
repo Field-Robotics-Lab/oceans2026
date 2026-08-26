@@ -1,0 +1,858 @@
+{
+  "method": "deterministic randomized grouped search",
+  "seed": 20260819,
+  "search_iterations": 100000,
+  "requested_fractions": {
+    "training": 0.6,
+    "tuning_validation": 0.15,
+    "family_selection": 0.1,
+    "final_test": 0.15
+  },
+  "objective": {
+    "maximum_fraction_deviation": 0.038461538461538464,
+    "sum_fraction_deviation": 0.354677934793013,
+    "collection_coverage_penalty": 4,
+    "balanced_quantities": [
+      "effective_samples",
+      "active_samples",
+      "steering_samples",
+      "moving_samples",
+      "source_log_count"
+    ]
+  },
+  "totals": {
+    "effective_samples": 42663,
+    "active_samples": 7422,
+    "steering_samples": 6519,
+    "moving_samples": 8652,
+    "source_log_count": 65
+  },
+  "partitions": {
+    "training": {
+      "source_logs": [
+        "data_1_00000001",
+        "data_1_00000002",
+        "data_1_00000004",
+        "data_1_00000005",
+        "data_1_00000006",
+        "data_1_00000007",
+        "data_1_00000010",
+        "data_1_00000012",
+        "data_1_00000015",
+        "data_1_00000017",
+        "data_1_00000019",
+        "data_1_00000021",
+        "data_1_00000023",
+        "data_1_00000025",
+        "data_1_00000027",
+        "data_2_00000002",
+        "data_2_00000004",
+        "data_2_00000006",
+        "data_2_00000015",
+        "data_2_00000020",
+        "data_2_00000027",
+        "data_2_00000034",
+        "data_2_00000035",
+        "data_2_00000036",
+        "data_2_00000037",
+        "data_42926_00000006",
+        "data_42926_00000011",
+        "data_42926_00000012",
+        "data_42926_00000013",
+        "data_42926_00000018",
+        "data_5062026_baseline1_00000003",
+        "data_5062026_baseline1_00000006",
+        "data_5062026_baseline2_00000003",
+        "data_5062026_baseline2_00000005",
+        "data_5062026_baseline3_00000010",
+        "data_5062026_baseline3_00000012",
+        "data_5062026_tuning_00000010"
+      ],
+      "source_log_count": 37,
+      "source_groups": [
+        "data_1",
+        "data_2",
+        "data_42926",
+        "data_5062026_baseline1",
+        "data_5062026_baseline2",
+        "data_5062026_baseline3",
+        "data_5062026_tuning"
+      ],
+      "effective_samples": 27183,
+      "active_samples": 4421,
+      "steering_samples": 3773,
+      "moving_samples": 5019,
+      "actual_effective_sample_fraction": 0.6371563181210885,
+      "dataset": {
+        "path": "partitions/training.csv",
+        "sha256": "9788aac2c3157b0545230d202417e985ff6cd1ef40607fcec117be331a2d0dcb",
+        "row_count": 28023,
+        "segment_count": 40
+      }
+    },
+    "tuning_validation": {
+      "source_logs": [
+        "data_1_00000008",
+        "data_1_00000016",
+        "data_2_00000022",
+        "data_2_00000039",
+        "data_42926_00000017",
+        "data_5062026_baseline1_00000004",
+        "data_5062026_baseline2_00000002",
+        "data_5062026_baseline2_00000007"
+      ],
+      "source_log_count": 8,
+      "source_groups": [
+        "data_1",
+        "data_2",
+        "data_42926",
+        "data_5062026_baseline1",
+        "data_5062026_baseline2"
+      ],
+      "effective_samples": 5672,
+      "active_samples": 1211,
+      "steering_samples": 1038,
+      "moving_samples": 1325,
+      "actual_effective_sample_fraction": 0.13294892529826782,
+      "dataset": {
+        "path": "partitions/tuning_validation.csv",
+        "sha256": "81e5709e8b8ae6a32cacc18bf4f68c1cceae4de6b8cf43a9eaf38b3b00ae1ad6",
+        "row_count": 5840,
+        "segment_count": 8
+      }
+    },
+    "family_selection": {
+      "source_logs": [
+        "data_1_00000003",
+        "data_1_00000009",
+        "data_1_00000013",
+        "data_1_00000014",
+        "data_2_00000024",
+        "data_2_00000030",
+        "data_5062026_baseline2_00000001",
+        "data_5062026_baseline2_00000009",
+        "data_5062026_baseline3_00000011"
+      ],
+      "source_log_count": 9,
+      "source_groups": [
+        "data_1",
+        "data_2",
+        "data_5062026_baseline2",
+        "data_5062026_baseline3"
+      ],
+      "effective_samples": 3504,
+      "active_samples": 586,
+      "steering_samples": 653,
+      "moving_samples": 727,
+      "actual_effective_sample_fraction": 0.0821320582237536,
+      "dataset": {
+        "path": "partitions/family_selection.csv",
+        "sha256": "5d290307d1d906f77372664d7d3f99f53defb7836d02452b9d4dd1678ac1c9cc",
+        "row_count": 3714,
+        "segment_count": 10
+      }
+    },
+    "final_test": {
+      "source_logs": [
+        "data_1_00000011",
+        "data_1_00000018",
+        "data_1_00000022",
+        "data_2_00000003",
+        "data_2_00000021",
+        "data_2_00000025",
+        "data_2_00000032",
+        "data_2_00000033",
+        "data_42926_00000009",
+        "data_5062026_baseline1_00000002",
+        "data_5062026_tuning_00000014"
+      ],
+      "source_log_count": 11,
+      "source_groups": [
+        "data_1",
+        "data_2",
+        "data_42926",
+        "data_5062026_baseline1",
+        "data_5062026_tuning"
+      ],
+      "effective_samples": 6304,
+      "active_samples": 1204,
+      "steering_samples": 1055,
+      "moving_samples": 1581,
+      "actual_effective_sample_fraction": 0.14776269835689004,
+      "dataset": {
+        "path": "partitions/final_test.csv",
+        "sha256": "a523665cad7a140fd0caf69d84430ec13e76de127fb02bca1a832eecbeed40d9",
+        "row_count": 6556,
+        "segment_count": 12
+      }
+    }
+  },
+  "source_summaries": {
+    "data_1_00000001": {
+      "source_log": "data_1_00000001",
+      "source_group": "data_1",
+      "rows": 70,
+      "effective_samples": 49,
+      "active_samples": 3,
+      "steering_samples": 8,
+      "moving_samples": 0,
+      "segment_count": 1
+    },
+    "data_1_00000002": {
+      "source_log": "data_1_00000002",
+      "source_group": "data_1",
+      "rows": 495,
+      "effective_samples": 474,
+      "active_samples": 126,
+      "steering_samples": 220,
+      "moving_samples": 289,
+      "segment_count": 1
+    },
+    "data_1_00000003": {
+      "source_log": "data_1_00000003",
+      "source_group": "data_1",
+      "rows": 55,
+      "effective_samples": 34,
+      "active_samples": 0,
+      "steering_samples": 0,
+      "moving_samples": 0,
+      "segment_count": 1
+    },
+    "data_1_00000004": {
+      "source_log": "data_1_00000004",
+      "source_group": "data_1",
+      "rows": 543,
+      "effective_samples": 522,
+      "active_samples": 375,
+      "steering_samples": 186,
+      "moving_samples": 457,
+      "segment_count": 1
+    },
+    "data_1_00000005": {
+      "source_log": "data_1_00000005",
+      "source_group": "data_1",
+      "rows": 133,
+      "effective_samples": 112,
+      "active_samples": 16,
+      "steering_samples": 110,
+      "moving_samples": 11,
+      "segment_count": 1
+    },
+    "data_1_00000006": {
+      "source_log": "data_1_00000006",
+      "source_group": "data_1",
+      "rows": 1221,
+      "effective_samples": 1200,
+      "active_samples": 22,
+      "steering_samples": 74,
+      "moving_samples": 31,
+      "segment_count": 1
+    },
+    "data_1_00000007": {
+      "source_log": "data_1_00000007",
+      "source_group": "data_1",
+      "rows": 518,
+      "effective_samples": 476,
+      "active_samples": 33,
+      "steering_samples": 124,
+      "moving_samples": 93,
+      "segment_count": 2
+    },
+    "data_1_00000008": {
+      "source_log": "data_1_00000008",
+      "source_group": "data_1",
+      "rows": 2190,
+      "effective_samples": 2169,
+      "active_samples": 94,
+      "steering_samples": 369,
+      "moving_samples": 131,
+      "segment_count": 1
+    },
+    "data_1_00000009": {
+      "source_log": "data_1_00000009",
+      "source_group": "data_1",
+      "rows": 689,
+      "effective_samples": 668,
+      "active_samples": 129,
+      "steering_samples": 242,
+      "moving_samples": 196,
+      "segment_count": 1
+    },
+    "data_1_00000010": {
+      "source_log": "data_1_00000010",
+      "source_group": "data_1",
+      "rows": 149,
+      "effective_samples": 128,
+      "active_samples": 15,
+      "steering_samples": 32,
+      "moving_samples": 44,
+      "segment_count": 1
+    },
+    "data_1_00000011": {
+      "source_log": "data_1_00000011",
+      "source_group": "data_1",
+      "rows": 428,
+      "effective_samples": 407,
+      "active_samples": 83,
+      "steering_samples": 145,
+      "moving_samples": 192,
+      "segment_count": 1
+    },
+    "data_1_00000012": {
+      "source_log": "data_1_00000012",
+      "source_group": "data_1",
+      "rows": 1043,
+      "effective_samples": 1022,
+      "active_samples": 42,
+      "steering_samples": 97,
+      "moving_samples": 82,
+      "segment_count": 1
+    },
+    "data_1_00000013": {
+      "source_log": "data_1_00000013",
+      "source_group": "data_1",
+      "rows": 184,
+      "effective_samples": 163,
+      "active_samples": 4,
+      "steering_samples": 40,
+      "moving_samples": 26,
+      "segment_count": 1
+    },
+    "data_1_00000014": {
+      "source_log": "data_1_00000014",
+      "source_group": "data_1",
+      "rows": 126,
+      "effective_samples": 105,
+      "active_samples": 0,
+      "steering_samples": 38,
+      "moving_samples": 5,
+      "segment_count": 1
+    },
+    "data_1_00000015": {
+      "source_log": "data_1_00000015",
+      "source_group": "data_1",
+      "rows": 79,
+      "effective_samples": 58,
+      "active_samples": 6,
+      "steering_samples": 41,
+      "moving_samples": 32,
+      "segment_count": 1
+    },
+    "data_1_00000016": {
+      "source_log": "data_1_00000016",
+      "source_group": "data_1",
+      "rows": 145,
+      "effective_samples": 124,
+      "active_samples": 9,
+      "steering_samples": 49,
+      "moving_samples": 32,
+      "segment_count": 1
+    },
+    "data_1_00000017": {
+      "source_log": "data_1_00000017",
+      "source_group": "data_1",
+      "rows": 1111,
+      "effective_samples": 1090,
+      "active_samples": 19,
+      "steering_samples": 102,
+      "moving_samples": 51,
+      "segment_count": 1
+    },
+    "data_1_00000018": {
+      "source_log": "data_1_00000018",
+      "source_group": "data_1",
+      "rows": 672,
+      "effective_samples": 651,
+      "active_samples": 65,
+      "steering_samples": 183,
+      "moving_samples": 124,
+      "segment_count": 1
+    },
+    "data_1_00000019": {
+      "source_log": "data_1_00000019",
+      "source_group": "data_1",
+      "rows": 114,
+      "effective_samples": 93,
+      "active_samples": 29,
+      "steering_samples": 59,
+      "moving_samples": 86,
+      "segment_count": 1
+    },
+    "data_1_00000021": {
+      "source_log": "data_1_00000021",
+      "source_group": "data_1",
+      "rows": 359,
+      "effective_samples": 338,
+      "active_samples": 46,
+      "steering_samples": 112,
+      "moving_samples": 64,
+      "segment_count": 1
+    },
+    "data_1_00000022": {
+      "source_log": "data_1_00000022",
+      "source_group": "data_1",
+      "rows": 1006,
+      "effective_samples": 985,
+      "active_samples": 69,
+      "steering_samples": 251,
+      "moving_samples": 136,
+      "segment_count": 1
+    },
+    "data_1_00000023": {
+      "source_log": "data_1_00000023",
+      "source_group": "data_1",
+      "rows": 111,
+      "effective_samples": 90,
+      "active_samples": 11,
+      "steering_samples": 56,
+      "moving_samples": 22,
+      "segment_count": 1
+    },
+    "data_1_00000025": {
+      "source_log": "data_1_00000025",
+      "source_group": "data_1",
+      "rows": 140,
+      "effective_samples": 119,
+      "active_samples": 4,
+      "steering_samples": 34,
+      "moving_samples": 19,
+      "segment_count": 1
+    },
+    "data_1_00000027": {
+      "source_log": "data_1_00000027",
+      "source_group": "data_1",
+      "rows": 633,
+      "effective_samples": 612,
+      "active_samples": 262,
+      "steering_samples": 159,
+      "moving_samples": 492,
+      "segment_count": 1
+    },
+    "data_2_00000002": {
+      "source_log": "data_2_00000002",
+      "source_group": "data_2",
+      "rows": 123,
+      "effective_samples": 102,
+      "active_samples": 0,
+      "steering_samples": 2,
+      "moving_samples": 0,
+      "segment_count": 1
+    },
+    "data_2_00000003": {
+      "source_log": "data_2_00000003",
+      "source_group": "data_2",
+      "rows": 81,
+      "effective_samples": 60,
+      "active_samples": 0,
+      "steering_samples": 4,
+      "moving_samples": 0,
+      "segment_count": 1
+    },
+    "data_2_00000004": {
+      "source_log": "data_2_00000004",
+      "source_group": "data_2",
+      "rows": 131,
+      "effective_samples": 110,
+      "active_samples": 16,
+      "steering_samples": 4,
+      "moving_samples": 0,
+      "segment_count": 1
+    },
+    "data_2_00000006": {
+      "source_log": "data_2_00000006",
+      "source_group": "data_2",
+      "rows": 155,
+      "effective_samples": 134,
+      "active_samples": 0,
+      "steering_samples": 0,
+      "moving_samples": 0,
+      "segment_count": 1
+    },
+    "data_2_00000015": {
+      "source_log": "data_2_00000015",
+      "source_group": "data_2",
+      "rows": 65,
+      "effective_samples": 44,
+      "active_samples": 0,
+      "steering_samples": 0,
+      "moving_samples": 0,
+      "segment_count": 1
+    },
+    "data_2_00000020": {
+      "source_log": "data_2_00000020",
+      "source_group": "data_2",
+      "rows": 204,
+      "effective_samples": 183,
+      "active_samples": 0,
+      "steering_samples": 2,
+      "moving_samples": 1,
+      "segment_count": 1
+    },
+    "data_2_00000021": {
+      "source_log": "data_2_00000021",
+      "source_group": "data_2",
+      "rows": 635,
+      "effective_samples": 614,
+      "active_samples": 300,
+      "steering_samples": 89,
+      "moving_samples": 358,
+      "segment_count": 1
+    },
+    "data_2_00000022": {
+      "source_log": "data_2_00000022",
+      "source_group": "data_2",
+      "rows": 462,
+      "effective_samples": 441,
+      "active_samples": 424,
+      "steering_samples": 166,
+      "moving_samples": 379,
+      "segment_count": 1
+    },
+    "data_2_00000024": {
+      "source_log": "data_2_00000024",
+      "source_group": "data_2",
+      "rows": 331,
+      "effective_samples": 310,
+      "active_samples": 126,
+      "steering_samples": 65,
+      "moving_samples": 135,
+      "segment_count": 1
+    },
+    "data_2_00000025": {
+      "source_log": "data_2_00000025",
+      "source_group": "data_2",
+      "rows": 489,
+      "effective_samples": 468,
+      "active_samples": 223,
+      "steering_samples": 146,
+      "moving_samples": 264,
+      "segment_count": 1
+    },
+    "data_2_00000027": {
+      "source_log": "data_2_00000027",
+      "source_group": "data_2",
+      "rows": 649,
+      "effective_samples": 628,
+      "active_samples": 134,
+      "steering_samples": 95,
+      "moving_samples": 141,
+      "segment_count": 1
+    },
+    "data_2_00000030": {
+      "source_log": "data_2_00000030",
+      "source_group": "data_2",
+      "rows": 53,
+      "effective_samples": 32,
+      "active_samples": 0,
+      "steering_samples": 0,
+      "moving_samples": 0,
+      "segment_count": 1
+    },
+    "data_2_00000032": {
+      "source_log": "data_2_00000032",
+      "source_group": "data_2",
+      "rows": 2146,
+      "effective_samples": 2104,
+      "active_samples": 80,
+      "steering_samples": 39,
+      "moving_samples": 111,
+      "segment_count": 2
+    },
+    "data_2_00000033": {
+      "source_log": "data_2_00000033",
+      "source_group": "data_2",
+      "rows": 72,
+      "effective_samples": 51,
+      "active_samples": 17,
+      "steering_samples": 18,
+      "moving_samples": 24,
+      "segment_count": 1
+    },
+    "data_2_00000034": {
+      "source_log": "data_2_00000034",
+      "source_group": "data_2",
+      "rows": 1150,
+      "effective_samples": 1129,
+      "active_samples": 74,
+      "steering_samples": 73,
+      "moving_samples": 72,
+      "segment_count": 1
+    },
+    "data_2_00000035": {
+      "source_log": "data_2_00000035",
+      "source_group": "data_2",
+      "rows": 135,
+      "effective_samples": 114,
+      "active_samples": 0,
+      "steering_samples": 0,
+      "moving_samples": 0,
+      "segment_count": 1
+    },
+    "data_2_00000036": {
+      "source_log": "data_2_00000036",
+      "source_group": "data_2",
+      "rows": 575,
+      "effective_samples": 554,
+      "active_samples": 0,
+      "steering_samples": 0,
+      "moving_samples": 0,
+      "segment_count": 1
+    },
+    "data_2_00000037": {
+      "source_log": "data_2_00000037",
+      "source_group": "data_2",
+      "rows": 528,
+      "effective_samples": 507,
+      "active_samples": 0,
+      "steering_samples": 0,
+      "moving_samples": 0,
+      "segment_count": 1
+    },
+    "data_2_00000039": {
+      "source_log": "data_2_00000039",
+      "source_group": "data_2",
+      "rows": 2245,
+      "effective_samples": 2224,
+      "active_samples": 151,
+      "steering_samples": 112,
+      "moving_samples": 201,
+      "segment_count": 1
+    },
+    "data_42926_00000006": {
+      "source_log": "data_42926_00000006",
+      "source_group": "data_42926",
+      "rows": 7654,
+      "effective_samples": 7612,
+      "active_samples": 163,
+      "steering_samples": 66,
+      "moving_samples": 0,
+      "segment_count": 2
+    },
+    "data_42926_00000009": {
+      "source_log": "data_42926_00000009",
+      "source_group": "data_42926",
+      "rows": 332,
+      "effective_samples": 311,
+      "active_samples": 208,
+      "steering_samples": 68,
+      "moving_samples": 237,
+      "segment_count": 1
+    },
+    "data_42926_00000011": {
+      "source_log": "data_42926_00000011",
+      "source_group": "data_42926",
+      "rows": 4410,
+      "effective_samples": 4389,
+      "active_samples": 305,
+      "steering_samples": 139,
+      "moving_samples": 316,
+      "segment_count": 1
+    },
+    "data_42926_00000012": {
+      "source_log": "data_42926_00000012",
+      "source_group": "data_42926",
+      "rows": 332,
+      "effective_samples": 290,
+      "active_samples": 112,
+      "steering_samples": 96,
+      "moving_samples": 133,
+      "segment_count": 2
+    },
+    "data_42926_00000013": {
+      "source_log": "data_42926_00000013",
+      "source_group": "data_42926",
+      "rows": 442,
+      "effective_samples": 421,
+      "active_samples": 173,
+      "steering_samples": 19,
+      "moving_samples": 182,
+      "segment_count": 1
+    },
+    "data_42926_00000017": {
+      "source_log": "data_42926_00000017",
+      "source_group": "data_42926",
+      "rows": 211,
+      "effective_samples": 190,
+      "active_samples": 166,
+      "steering_samples": 79,
+      "moving_samples": 190,
+      "segment_count": 1
+    },
+    "data_42926_00000018": {
+      "source_log": "data_42926_00000018",
+      "source_group": "data_42926",
+      "rows": 1400,
+      "effective_samples": 1379,
+      "active_samples": 1055,
+      "steering_samples": 712,
+      "moving_samples": 1131,
+      "segment_count": 1
+    },
+    "data_5062026_baseline1_00000002": {
+      "source_log": "data_5062026_baseline1_00000002",
+      "source_group": "data_5062026_baseline1",
+      "rows": 539,
+      "effective_samples": 518,
+      "active_samples": 35,
+      "steering_samples": 6,
+      "moving_samples": 0,
+      "segment_count": 1
+    },
+    "data_5062026_baseline1_00000003": {
+      "source_log": "data_5062026_baseline1_00000003",
+      "source_group": "data_5062026_baseline1",
+      "rows": 1772,
+      "effective_samples": 1751,
+      "active_samples": 597,
+      "steering_samples": 521,
+      "moving_samples": 523,
+      "segment_count": 1
+    },
+    "data_5062026_baseline1_00000004": {
+      "source_log": "data_5062026_baseline1_00000004",
+      "source_group": "data_5062026_baseline1",
+      "rows": 290,
+      "effective_samples": 269,
+      "active_samples": 203,
+      "steering_samples": 140,
+      "moving_samples": 212,
+      "segment_count": 1
+    },
+    "data_5062026_baseline1_00000006": {
+      "source_log": "data_5062026_baseline1_00000006",
+      "source_group": "data_5062026_baseline1",
+      "rows": 242,
+      "effective_samples": 221,
+      "active_samples": 186,
+      "steering_samples": 134,
+      "moving_samples": 185,
+      "segment_count": 1
+    },
+    "data_5062026_baseline2_00000001": {
+      "source_log": "data_5062026_baseline2_00000001",
+      "source_group": "data_5062026_baseline2",
+      "rows": 62,
+      "effective_samples": 41,
+      "active_samples": 0,
+      "steering_samples": 0,
+      "moving_samples": 0,
+      "segment_count": 1
+    },
+    "data_5062026_baseline2_00000002": {
+      "source_log": "data_5062026_baseline2_00000002",
+      "source_group": "data_5062026_baseline2",
+      "rows": 96,
+      "effective_samples": 75,
+      "active_samples": 0,
+      "steering_samples": 0,
+      "moving_samples": 0,
+      "segment_count": 1
+    },
+    "data_5062026_baseline2_00000003": {
+      "source_log": "data_5062026_baseline2_00000003",
+      "source_group": "data_5062026_baseline2",
+      "rows": 68,
+      "effective_samples": 47,
+      "active_samples": 0,
+      "steering_samples": 0,
+      "moving_samples": 0,
+      "segment_count": 1
+    },
+    "data_5062026_baseline2_00000005": {
+      "source_log": "data_5062026_baseline2_00000005",
+      "source_group": "data_5062026_baseline2",
+      "rows": 502,
+      "effective_samples": 481,
+      "active_samples": 320,
+      "steering_samples": 302,
+      "moving_samples": 231,
+      "segment_count": 1
+    },
+    "data_5062026_baseline2_00000007": {
+      "source_log": "data_5062026_baseline2_00000007",
+      "source_group": "data_5062026_baseline2",
+      "rows": 201,
+      "effective_samples": 180,
+      "active_samples": 164,
+      "steering_samples": 123,
+      "moving_samples": 180,
+      "segment_count": 1
+    },
+    "data_5062026_baseline2_00000009": {
+      "source_log": "data_5062026_baseline2_00000009",
+      "source_group": "data_5062026_baseline2",
+      "rows": 246,
+      "effective_samples": 225,
+      "active_samples": 161,
+      "steering_samples": 143,
+      "moving_samples": 171,
+      "segment_count": 1
+    },
+    "data_5062026_baseline3_00000010": {
+      "source_log": "data_5062026_baseline3_00000010",
+      "source_group": "data_5062026_baseline3",
+      "rows": 58,
+      "effective_samples": 37,
+      "active_samples": 24,
+      "steering_samples": 18,
+      "moving_samples": 37,
+      "segment_count": 1
+    },
+    "data_5062026_baseline3_00000011": {
+      "source_log": "data_5062026_baseline3_00000011",
+      "source_group": "data_5062026_baseline3",
+      "rows": 1968,
+      "effective_samples": 1926,
+      "active_samples": 166,
+      "steering_samples": 125,
+      "moving_samples": 194,
+      "segment_count": 2
+    },
+    "data_5062026_baseline3_00000012": {
+      "source_log": "data_5062026_baseline3_00000012",
+      "source_group": "data_5062026_baseline3",
+      "rows": 139,
+      "effective_samples": 118,
+      "active_samples": 113,
+      "steering_samples": 87,
+      "moving_samples": 118,
+      "segment_count": 1
+    },
+    "data_5062026_tuning_00000010": {
+      "source_log": "data_5062026_tuning_00000010",
+      "source_group": "data_5062026_tuning",
+      "rows": 570,
+      "effective_samples": 549,
+      "active_samples": 140,
+      "steering_samples": 89,
+      "moving_samples": 176,
+      "segment_count": 1
+    },
+    "data_5062026_tuning_00000014": {
+      "source_log": "data_5062026_tuning_00000014",
+      "source_group": "data_5062026_tuning",
+      "rows": 156,
+      "effective_samples": 135,
+      "active_samples": 124,
+      "steering_samples": 106,
+      "moving_samples": 135,
+      "segment_count": 1
+    }
+  },
+  "notes": [
+    "Every retained segment from a source BIN remains in exactly one partition.",
+    "Tuning validation is for early stopping and within-family hyperparameter selection.",
+    "Family selection is for choosing one of the three frozen neural model families.",
+    "Final test remains closed until the winning family and hyperparameters are frozen.",
+    "Split balancing uses only measured coverage statistics, never fitted-model performance."
+  ],
+  "schema_version": 2,
+  "dataset": "slow_manual_mode_10hz.csv",
+  "dataset_sha256": "092cfde0d4ef3c0e59d83d3ac1133b394bbdeeaec699ba7bbdafc86c080cc483",
+  "regime_manifest": "regime_manifest.json",
+  "regime_contract": {
+    "speed_threshold_mps": 3.4028080670449357,
+    "minimum_consecutive_exceedance_seconds": 1.0,
+    "retained_max_speed_mps": 3.1376256217272283
+  }
+}
