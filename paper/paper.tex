@@ -341,15 +341,47 @@ intent $1/\lambda$. The pair of criteria bounds sufficiency from both sides.
 
 \subsection{Vehicle}
 
-The platform is \needsdata{make and model}, approximately
-\needsdata{length}~m in length with a mass of \needsdata{mass}~kg, driven by
-\needsdata{propulsion description} and steered by a single rudder. Guidance and
-logging run on an ArduPilot autopilot with GPS and an inertial measurement unit.
-The speed range spans \needsdata{speed range and any regime transition speeds}.
-Control inputs are RC throttle (channel~3) and rudder (channel~1), logged as
-1100--1900~$\mu$s PWM and normalized to $[-1,1]$ about the 1500~$\mu$s neutral
-point. Measured outputs are GPS speed over ground at 5~Hz and IMU yaw rate at
-137~Hz.
+The platform is a Pro Boat Blackjack 42, a production radio-controlled catamaran
+hull of 1.07~m (42~in) length, instrumented to a mass of approximately 5~kg.
+Despite the twin-hull form the propulsion is single-screw: one four-pole
+water-cooled brushless motor turning a single propeller through a 160~A
+water-cooled electronic speed controller, with a single rudder driven by one
+digital servo and an 8S lithium-polymer pack supplying power. The vehicle is
+therefore underactuated in exactly the sense of Sec.~\ref{sec:intro}, with
+forward thrust on one channel and steering moment on another whose authority
+depends on forward speed.
+
+Choosing a production hull rather than a purpose-built platform is deliberate.
+Vessels of this class are what the small-USV installed base actually looks like,
+and the identification problem is posed by the vehicle that exists rather than by
+one designed to be identifiable.
+
+\subsection{Autopilot, Sensing and Logging}
+
+Guidance, control and logging run on a Cube Orange autopilot executing ArduRover
+4.6.3 (commit \texttt{3fc7011a}), with Mission Planner as the ground station.
+Position and ground speed come from a HERE3 GNSS receiver over DroneCAN, and
+angular rates from the autopilot's internal inertial measurement unit.
+
+The actuator configuration is confirmed by the parameter set: \texttt{SERVO1} is
+assigned to ground steering and \texttt{SERVO3} to throttle, and every other servo
+output is disabled. There is one thrust input and one steering input, with no
+differential-thrust path. Commands are logged as \texttt{RCOU\_C3} (throttle) and
+\texttt{RCOU\_C1} (rudder) at 1100--1900~$\mu$s PWM and normalized to $[-1,1]$
+about the 1500~$\mu$s neutral point. Measured outputs are \texttt{GPS\_Spd} ground
+speed at 5~Hz and \texttt{IMU\_GyrZ} yaw rate at 137~Hz. The trials used here are
+flown in manual mode, so the logged commands are open-loop operator inputs rather
+than the output of any autopilot loop.
+
+Binary autopilot logs are converted to MATLAB format by a utility that extracts
+every numeric field of every message type under a \texttt{\{MSGTYPE\}\_\{field\}}
+naming convention, and all subsequent processing works from that representation.
+
+The configured cruise speed for the vehicle is 5~m/s. The identification trial
+described below spans 0--2.9~m/s, so it covers roughly the lower half of the
+speed range the vehicle is intended to operate over. This matters for
+interpreting Diagnostic~4 in Sec.~\ref{sec:diag-results}, whose sufficiency
+interval is narrower still.
 
 \subsection{Data Cleaning}
 
@@ -588,7 +620,12 @@ it uses is only as good as the parameters behind it. The common-trial comparison
 in Sec.~\ref{sec:l3-results} rests on one 130~s record, which is enough to
 demonstrate the divergence but not to quantify how often it occurs. Level~3's
 training corpus is broader but restricted to the slow region by construction, so
-nothing here speaks to behavior near or above the planing transition.
+nothing here speaks to behavior near or above the planing transition. Since the
+configured cruise speed is 5~m/s, none of the three levels is characterized over
+the upper half of the vehicle's intended operating range. The hull is also a
+catamaran, and while the single thruster and rudder actuation is what the method
+addresses, twin-hull drag and yaw behavior need not match the monohull craft that
+dominate this literature. Generalization across hull form is untested here.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Conclusion}

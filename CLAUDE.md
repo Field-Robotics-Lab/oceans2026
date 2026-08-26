@@ -19,10 +19,31 @@ useful," balances interpretability against fidelity:
 **Current status:** Full paper drafted in `paper/paper.tex` (8 pages, builds clean).
 The `traditional-models` and `vogt_dev` branches were merged into `main` on 2026-08-25;
 `traditional-models` was identical to `main` and `vogt_dev` fast-forwarded, so no
-content was reconciled at merge time. Remaining blocker for submission is the vehicle
-specification, marked with `\needsdata{}` in Sec. IV and rendered in red.
+content was reconciled at merge time. Sec. IV is complete: the platform is described from the ME2801 course
+site and the ArduRover parameter set. No `\needsdata{}` placeholders remain.
 
 ---
+
+## Platform
+
+| Item | Value | Source |
+|------|-------|--------|
+| Hull | Pro Boat Blackjack 42, RC catamaran, 1.07 m (42 in) | Horizon Hobby PRB08043 |
+| Mass | ~5 kg as instrumented | ME2801 autopilot page |
+| Propulsion | Single four-pole water-cooled brushless motor, one propeller, 160 A ESC, 8S LiPo | product listing |
+| Steering | Single rudder, one digital servo | product listing |
+| Autopilot | Cube Orange, ArduRover 4.6.3 (commit `3fc7011a`) | ME2801 autopilot page |
+| GNSS | HERE3 over DroneCAN | ME2801 autopilot page |
+| Cruise speed | `CRUISE_SPEED` = 5 m/s (trial covers only 0–2.9 m/s) | `2026_05_29_proto.param` |
+| Actuator config | `SERVO1_FUNCTION=26` (steering), `SERVO3_FUNCTION=70` (throttle), all others 0 | `2026_05_29_proto.param` |
+
+The single-motor / single-rudder configuration is confirmed by the parameter file,
+which matters because a catamaran hull would otherwise suggest differential thrust.
+Beam is not published on the product page and is not stated in the paper.
+
+Reference material lives at
+`~/WorkingCopies/me2801/introduction-to-feedback-control/site/` (the `autopilot/`
+and `weeks/` directories).
 
 ## Data
 
@@ -143,19 +164,16 @@ holding both documents may notice.
 
 ## What to do next
 
-1. **Fill the vehicle specifications** — the four `\needsdata{}` placeholders in
-   Sec. IV of `paper.tex`. Nothing containing one should be submitted.
-
-2. **Regenerate the Level-3 figures at IEEE size.** `figures/preview/*` are
+1. **Regenerate the Level-3 figures at IEEE size.** `figures/preview/*` are
    web-styled: baked-in titles duplicate the captions, and in
    `combined_three_level_preview.pdf` the "Yaw-rate recursive simulation" heading
    overlaps the panel above it and the Level-3 R² legend label is clipped.
 
-3. **Collect more data** — wider throttle range, multiple speed levels, dedicated
+2. **Collect more data** — wider throttle range, multiple speed levels, dedicated
    rudder sweeps at fixed speeds (needed to resolve speed-dependent rudder gain).
 
 3. **Iterate models** with richer data:
    - Level 2: add speed-dependent rudder term once data supports it
    - Level 3: explore deeper MLP or LSTM; larger lag window; cross-validation
 
-4. **Write the full paper.** The current draft is the conference version.
+3. **Write the full paper.** The current draft is the conference version.
