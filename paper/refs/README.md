@@ -40,9 +40,9 @@ Also present: `fossen94guidance.pdf` (Fossen, *Guidance and Control of Ocean Veh
 | `yasukawa2015mmg` | Hironori Yasukawa, Yasuo Yoshimura | Introduction of MMG Standard Method for Ship Maneuvering Predictions | J. Marine Science and Technology 20(1), 37–52 (2015) | 10.1007/s00773-014-0293-y — **open access**, Springer redirect is the only obstacle |
 | `kallstrom1981experiences` | Claes G. Källström, Karl Johan Åström | Experiences of System Identification Applied to Ship Steering | Automatica 17(1), 187–198 (1981) | 10.1016/0005-1098(81)90094-7 — try Lund LUP, the 1976 companion is free there |
 | `hann2010simplified` | Christopher E. Hann, Harsha Sirisena, Napasool Wongvanich | Simplified Modeling Approach to System Identification of Nonlinear Boat Dynamics | American Control Conference 2010, 5218–5223 | 10.1109/ACC.2010.5530459 |
-| `skelton1989model` | Robert E. Skelton | Model Error Concepts in Control Design | International Journal of Control 49(5), 1725–1753 (1989) | 10.1080/00207178908559735 — carries the "appropriate, not small" criterion the paper builds on |
+| `skelton1989model` | Robert E. Skelton | Model Error Concepts in Control Design | International Journal of Control 49(5), 1725–1753 (1989) | 10.1080/00207178908559735 — **quote verified 2026-08-25 from the published abstract**: "Modelling errors need not be 'small' but simply 'appropriate' for control design." PDF still not held, but the claim the paper makes does not need the full text. |
 
-`woo2018dynamic` is the priority. Gap 2 in the paper asserts they report one-step prediction only; that must be verified before submission.
+`woo2018dynamic` was resolved by CV: they validate a simplified-model/LSTM hybrid through forward simulation on held-out maneuver records, so the earlier one-step-only characterization was wrong and the paper no longer makes it. The bib `note` field was corrected to match.
 
 ### Lower priority
 
