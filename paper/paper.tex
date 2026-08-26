@@ -162,6 +162,8 @@ Levels~1 and~2 are identified from a single step-response trial, a 130~s working
 
 Level~3 draws on a larger corpus: 44{,}133 samples in 70 slow-region segments from 65 source logs. The slow-region rule excludes a complete segment once speed stays above 3.4028~m/s for at least 1~s continuously. Allocation is grouped by source log, so every segment from one recording falls in a single partition and no recording is split across training and validation. Training uses 37 logs, being 40 segments and 28{,}023 rows. Validation uses every other viable slow-region recording, being 28 logs, 30 segments and 16{,}110 rows. Ten complete high-speed segments consistent with planing are held aside for later regime-spanning work and are not used in the results below. That label is empirical GPS speed over ground rather than a verified physical planing transition.
 
+A supplementary corpus, collected after the analysis above was fixed, supports one check reported in Sec.~\ref{sec:diag-results}. It holds 17 records, 49 minutes and 29{,}524 samples at 10~Hz, reaches 6.0~m/s and includes reverse throttle, so it covers the upper half of the configured operating range that the identification trial never enters. Much of its rudder activity occurs in the autopilot's rate-controlled mode, where the logged rudder is a controller output and the firmware applies its own speed scaling. Those records are excluded from what follows, since identifying a speed-dependent rudder gain from them would partly recover the controller rather than the vehicle.
+
 For direct comparison across levels, the frozen Level~3 model is also evaluated on the same 130~s trial used for Levels~1 and~2. Its 20-sample lag history leaves 1{,}279 scored rows against the 1{,}300 rows available to Levels~1 and~2.
 
 % ─────────────────────────────────────────────────────────────────────────────
@@ -210,6 +212,15 @@ The apparent ranking in Fig.~\ref{fig:combined} will not carry that weight. Leve
 \label{sec:diag-results}
 
 \emph{Diagnostic 1} finds no improvement from a speed-dependent rudder gain ($\Delta R^2 = -0.03$). The trial holds forward speed nearly constant during the rudder steps, so $\delta v$ and $\delta$ are very nearly the same regressor and no fit can separate them. The partial scaling noted in Sec.~\ref{sec:methodology} is a second candidate explanation. Either way the result flags a gap in data coverage rather than absence of the effect, and it is the primary target of the next collection campaign, whose rudder sweeps at fixed speeds should test the full scaling rather than the input gain alone.
+
+The supplementary corpus lets that attribution be tested rather than asserted. Measuring the collinearity of $\delta$ and $\delta v$ on each manual-mode record and repeating the diagnostic gives Fig.~\ref{fig:diag1-excitation}. The identification trial sits at a correlation of 0.99, among the most collinear records available, and the records that separate the two terms are the ones in which the speed-scaled gain improves the fit. The clearest case holds rudder from 0.46 to 4.48~m/s and returns $\Delta R^2 = +0.13$. We do not claim the effect is thereby established: averaged over the manual-mode records the improvement is only $+0.02$, a single record carries most of it, and each fit is in-sample. What the comparison does establish is that the diagnostic's power is governed by how far speed varies while the rudder is deflected. That converts the explanation offered above from an assertion into a measurement, and it specifies what the rudder sweeps have to achieve: not more data, but rudder applied across separated speeds.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/diagnostic1_excitation.pdf}
+  \caption{Diagnostic~1 repeated on each manual-mode record of the supplementary corpus. The horizontal axis is the correlation between $\delta$ and $\delta v$ over the samples with rudder applied, so records to the right cannot separate a constant gain from a speed-scaled one. Marker area is record length and colour is the highest speed reached under rudder. The cross marks the identification trial used throughout the paper.}
+  \label{fig:diag1-excitation}
+\end{figure}
 
 \emph{Diagnostic 2} finds quadratic damping clearly dominant, with $\Delta R^2 = +0.20$ over the linear fit, $d_1 = -0.015$ and $d_2 = 0.448$~m$^{-1}$ on the coasting segments. The two-phase identification of Sec.~\ref{sec:methodology} returns $d_2 = 0.438$~m$^{-1}$ from the same segments under the Level-2 parameterization, and the agreement between the two is a weak consistency check rather than an independent one. This is the direct empirical warrant for the Level-2 structure.
 
