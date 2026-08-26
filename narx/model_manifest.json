@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "model_name": "residual_narx",
+  "paper_candidate_id": "width_64_seed_42",
+  "checkpoint": "checkpoints/final_8202026.pt",
+  "checkpoint_sha256": "d46dc04d12c62309669950cd47f24446c9bfe4350dbfe177e1b36b9b645ca774",
+  "parameter_count": 1410,
+  "architecture": {
+    "inputs": 19,
+    "hidden_units": 64,
+    "activation": "tanh",
+    "outputs": 2,
+    "target": "standardized speed and yaw-rate increments"
+  },
+  "taps": {
+    "state": [0, 1, 2, 5],
+    "throttle": [0, 1, 2, 5, 10, 20],
+    "rudder": [0, 1, 2, 5, 10]
+  },
+  "sample_interval_seconds": 0.1,
+  "seed": 42,
+  "training": {
+    "source_logs": 37,
+    "segments": 40,
+    "rows": 28023,
+    "warm_start": "one-step state-increment loss",
+    "rollout_horizons_seconds": [0.5, 1.0, 2.0, 5.0]
+  },
+  "frozen_data": {
+    "dataset": "data/slow_manual_mode_10hz.csv",
+    "dataset_sha256": "092cfde0d4ef3c0e59d83d3ac1133b394bbdeeaec699ba7bbdafc86c080cc483",
+    "split": "data/split.json",
+    "split_sha256": "7bab79637648ea0836fbbd98edc1a48c415f7cb41f6c7f60d9f292f232f5088e"
+  },
+  "archived_source_hashes": {
+    "paper_validation_results.json": "164fe4c9791ed6440570c79200686703aac4c1cf544d4205ac63f6632727935b",
+    "paper_validation_traces.csv": "206fce59f89060cb35f4e66600ba6a11914418a4e3fd6a3a683fa32d44a4c903",
+    "original_trial_level3_results.json": "d28af6037df3978f899c105c2a9785eddf363cd00932735c50577a6afa557a56",
+    "original_trial_level3_traces.csv": "ef134f1f0bd16907f68cea0aa2f784f4db37507c2669938cf5cc427d7bcef08f"
+  }
+}

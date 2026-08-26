@@ -1,0 +1,84 @@
+{
+  "input": "processed/canonical/manual_mode_10hz.csv",
+  "input_sha256": "444ebc0b3a2129245d4c5a0e3f9322ea972e3e0d563900a178019e1aea307be0",
+  "decode_manifest_sha256": "64683128d1a3832c76c45528477072246731b758a837a4c29c6b75dbd7b670fb",
+  "source_manifest_sha256": "cb85705720a56e3bc2564726da95e262e7ddac0ce6f794c22afc51b4a1895a2b",
+  "method": {
+    "name": "historical cutoff with sustained exceedance",
+    "speed_threshold_mps": 3.4028080670449357,
+    "threshold_provenance": {
+      "historical_filter_manifest": null,
+      "historical_filter_manifest_note": "The historical research manifest is not included; its source SHA-256 is retained below.",
+      "historical_filter_manifest_sha256": "28f65872c6e9ebb404eb31feffd7c925dccfe4f7a7a63b1ad551f0d76beab3b4",
+      "historical_gap_lower_mps": 1.7550528768782272,
+      "historical_gap_upper_mps": 5.050563257211644,
+      "historical_threshold_mps": 3.4028080670449357
+    },
+    "minimum_consecutive_exceedance_samples": 10,
+    "minimum_consecutive_exceedance_seconds": 1.0,
+    "action": "exclude the complete segment"
+  },
+  "input_rows": 56065,
+  "retained_rows": 44133,
+  "excluded_rows": 11932,
+  "input_segments": 80,
+  "retained_segments": 70,
+  "excluded_segments": 10,
+  "retained_source_logs": 65,
+  "excluded_source_logs": 10,
+  "sources_with_retained_and_excluded_segments": [
+    "data_1_00000003",
+    "data_2_00000030"
+  ],
+  "retained_max_speed_mps": 3.1376256217272283,
+  "excluded_segment_ids": [
+    "data_1_00000003_manual_01_quality_00",
+    "data_2_00000014_manual_00_quality_00",
+    "data_2_00000030_manual_00_quality_00",
+    "data_2_00000038_manual_00_quality_00",
+    "data_42926_00000007_manual_00_quality_00",
+    "data_42926_00000008_manual_00_quality_00",
+    "data_42926_00000010_manual_00_quality_00",
+    "data_5062026_baseline1_00000008_manual_00_quality_00",
+    "data_5062026_baseline3_00000016_manual_00_quality_00",
+    "data_5062026_tuning_00000019_manual_00_quality_00"
+  ],
+  "outputs": {
+    "slow_dataset": "slow_manual_mode_10hz.csv",
+    "slow_dataset_sha256": "092cfde0d4ef3c0e59d83d3ac1133b394bbdeeaec699ba7bbdafc86c080cc483",
+    "planing_consistent_dataset": "planing_consistent_manual_mode_10hz.csv",
+    "planing_consistent_dataset_sha256": "c9ffeb6fed2ce2f4364c51f25ed658715d0e3f940ee13ff4a88856f8f0b3df27",
+    "classification": "segment_regime_classification.csv",
+    "classification_sha256": "22d81b28b2ac080aa1f777a0ac923cfbe1ad8caf1f8d0b765f6ad6d072e3dbb8",
+    "split": "split.json",
+    "partition_datasets": {
+      "training": {
+        "path": "partitions/training.csv",
+        "sha256": "9788aac2c3157b0545230d202417e985ff6cd1ef40607fcec117be331a2d0dcb",
+        "row_count": 28023,
+        "segment_count": 40
+      },
+      "tuning_validation": {
+        "path": "partitions/tuning_validation.csv",
+        "sha256": "81e5709e8b8ae6a32cacc18bf4f68c1cceae4de6b8cf43a9eaf38b3b00ae1ad6",
+        "row_count": 5840,
+        "segment_count": 8
+      },
+      "family_selection": {
+        "path": "partitions/family_selection.csv",
+        "sha256": "5d290307d1d906f77372664d7d3f99f53defb7836d02452b9d4dd1678ac1c9cc",
+        "row_count": 3714,
+        "segment_count": 10
+      },
+      "final_test": {
+        "path": "partitions/final_test.csv",
+        "sha256": "a523665cad7a140fd0caf69d84430ec13e76de127fb02bca1a832eecbeed40d9",
+        "row_count": 6556,
+        "segment_count": 12
+      }
+    },
+    "split_sha256": "7bab79637648ea0836fbbd98edc1a48c415f7cb41f6c7f60d9f292f232f5088e"
+  },
+  "interpretation": "This is an empirical slow/high-speed separation based on GPS speed over ground. It is not a physical planing label because speed through water and verified hull transition measurements are unavailable.",
+  "future_work": "Train and evaluate regime-spanning neural models with the retained planing-consistent data after collecting sufficient repeated transition maneuvers and adding explicit operating-regime metadata."
+}

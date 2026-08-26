@@ -1,0 +1,231 @@
+{
+  "schema_version": 1,
+  "purpose": "align frozen Level 3 evaluation with the legacy Level 1 and Level 2 trial",
+  "model_name": "residual_narx",
+  "candidate_id": "width_64_seed_42",
+  "checkpoint": "narx/checkpoints/final_8202026.pt",
+  "checkpoint_sha256": "d46dc04d12c62309669950cd47f24446c9bfe4350dbfe177e1b36b9b645ca774",
+  "trial_csv": "usv_step_response_150_280s.csv",
+  "trial_csv_sha256": "4820b3d3f1b10ec70177880dac9438f3147cd2fa8d54a76bf8516f5c8997085d",
+  "trial_rows": 1300,
+  "initialization_rows": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "first_scored_row": 21,
+  "scored_rows": 1279,
+  "first_scored_time_s": 2.1796979904174805,
+  "one_step": {
+    "metrics": {
+      "speed_mps": {
+        "rmse": 0.02295500598847866,
+        "mae": 0.016531627625226974,
+        "r2": 0.9981948524885984
+      },
+      "yaw_rate_rps": {
+        "rmse": 0.02047933079302311,
+        "mae": 0.013182316906750202,
+        "r2": 0.9891372058766842
+      }
+    },
+    "macro_nrmse": 0.10252848267555237,
+    "complete_segment_count": 1,
+    "failed_segment_ids": []
+  },
+  "recursive_simulation": {
+    "primary_metric": "complete_replay_macro_nrmse",
+    "macro_nrmse": 1.7021605968475342,
+    "metrics": {
+      "speed_mps": {
+        "rmse": 0.9339373111724854,
+        "mae": 0.7468008995056152,
+        "r2": -1.988087626495504
+      },
+      "yaw_rate_rps": {
+        "rmse": 0.16908912360668182,
+        "mae": 0.13013504445552826,
+        "r2": 0.2594722437385443
+      }
+    },
+    "attempted_segment_count": 1,
+    "complete_segment_count": 1,
+    "failed_or_partial_segment_ids": [],
+    "attempted_sample_count": 1279,
+    "evaluated_sample_count": 1279,
+    "sample_coverage_fraction": 1.0,
+    "per_segment": [
+      {
+        "segment_id": "legacy_step_response_150_280s",
+        "source_log": "step_resp_example",
+        "status": "complete",
+        "failure_reason": "",
+        "attempted_samples": 1279,
+        "evaluated_samples": 1279,
+        "coverage_fraction": 1.0,
+        "speed_rmse": 0.9339371919631958,
+        "yaw_rate_rmse": 0.16908909380435944,
+        "normalized_rmse_score": 1.7021605968475342
+      }
+    ]
+  },
+  "horizons": {
+    "1": {
+      "horizon_samples": 1,
+      "horizon_seconds": 0.1,
+      "speed_rmse": 0.023647308349609375,
+      "yaw_rate_rmse": 0.019462671130895615,
+      "macro_nrmse": 0.09954416751861572,
+      "attempted_origins": 118,
+      "evaluated_origins": 118,
+      "coverage_fraction": 1.0,
+      "eligible_segment_count": 1,
+      "complete_segment_count": 1
+    },
+    "5": {
+      "horizon_samples": 5,
+      "horizon_seconds": 0.5,
+      "speed_rmse": 0.09038594365119934,
+      "yaw_rate_rmse": 0.05383327230811119,
+      "macro_nrmse": 0.3040466904640198,
+      "attempted_origins": 118,
+      "evaluated_origins": 118,
+      "coverage_fraction": 1.0,
+      "eligible_segment_count": 1,
+      "complete_segment_count": 1
+    },
+    "10": {
+      "horizon_samples": 10,
+      "horizon_seconds": 1.0,
+      "speed_rmse": 0.1406749039888382,
+      "yaw_rate_rmse": 0.06683292239904404,
+      "macro_nrmse": 0.4101828932762146,
+      "attempted_origins": 118,
+      "evaluated_origins": 118,
+      "coverage_fraction": 1.0,
+      "eligible_segment_count": 1,
+      "complete_segment_count": 1
+    },
+    "20": {
+      "horizon_samples": 20,
+      "horizon_seconds": 2.0,
+      "speed_rmse": 0.25127485394477844,
+      "yaw_rate_rmse": 0.06818309426307678,
+      "macro_nrmse": 0.5423272848129272,
+      "attempted_origins": 118,
+      "evaluated_origins": 118,
+      "coverage_fraction": 1.0,
+      "eligible_segment_count": 1,
+      "complete_segment_count": 1
+    },
+    "50": {
+      "horizon_samples": 50,
+      "horizon_seconds": 5.0,
+      "speed_rmse": 0.45120641589164734,
+      "yaw_rate_rmse": 0.07072938978672028,
+      "macro_nrmse": 0.7815972566604614,
+      "attempted_origins": 118,
+      "evaluated_origins": 118,
+      "coverage_fraction": 1.0,
+      "eligible_segment_count": 1,
+      "complete_segment_count": 1
+    },
+    "100": {
+      "horizon_samples": 100,
+      "horizon_seconds": 10.0,
+      "speed_rmse": 0.5857071876525879,
+      "yaw_rate_rmse": 0.07592834532260895,
+      "macro_nrmse": 0.9555234909057617,
+      "attempted_origins": 118,
+      "evaluated_origins": 118,
+      "coverage_fraction": 1.0,
+      "eligible_segment_count": 1,
+      "complete_segment_count": 1
+    }
+  },
+  "feature_diagnostics": {
+    "trial_feature_rows": 1279,
+    "maximum_absolute_z": 6.031034469604492,
+    "p99_absolute_z": 3.942591905593872,
+    "fraction_values_above_absolute_z_3": 0.028805398954775522,
+    "fraction_values_above_absolute_z_5": 0.0032920455948314883,
+    "fraction_rows_outside_training_minmax": 0.0,
+    "fraction_feature_values_outside_training_minmax": 0.0,
+    "trial_ranges": {
+      "speed_mps": [
+        0.01698100008070469,
+        2.924838066101074
+      ],
+      "yaw_rate_rps": [
+        -0.6785140037536621,
+        0.5191630125045776
+      ],
+      "throttle_norm": [
+        0.0,
+        0.38999998569488525
+      ],
+      "rudder_norm": [
+        -1.0,
+        0.6949660181999207
+      ]
+    }
+  },
+  "trace_csv": "narx/results/original_trial_level3_traces.csv",
+  "trace_csv_sha256": "ef134f1f0bd16907f68cea0aa2f784f4db37507c2669938cf5cc427d7bcef08f",
+  "figures": {
+    "surge_pdf": "paper/figures/preview/level3_original_trial_surge.pdf",
+    "surge_pdf_sha256": "7dec8030dcf3b30473acf915907943c41e602d9a6306ae4fd8dec6595b88e62c",
+    "surge_png": "paper/figures/preview/level3_original_trial_surge.png",
+    "surge_png_sha256": "3005896adb2086bc97f2a68cdac0541bf239342679e8f2b52a825dd39f9c97fe",
+    "yaw_pdf": "paper/figures/preview/level3_original_trial_yaw.pdf",
+    "yaw_pdf_sha256": "51dbb52ddcf25b3c05893c1c01f251e3267ac801f2c980ab4f6019d6c6bb1098",
+    "yaw_png": "paper/figures/preview/level3_original_trial_yaw.png",
+    "yaw_png_sha256": "33e022350bcf7b17572fd710ce99bf565d7b95d0efce7d5d51e446733dfe5676"
+  },
+  "existing_level_results": {
+    "sample_count": 1300,
+    "level_1": {
+      "speed_rmse": 0.1455,
+      "speed_r2": 0.9295,
+      "yaw_rate_rmse": 0.0813,
+      "yaw_rate_r2": 0.8261
+    },
+    "level_2": {
+      "speed_rmse": 0.1657,
+      "speed_r2": 0.9086,
+      "yaw_rate_rmse": 0.0828,
+      "yaw_rate_r2": 0.8198
+    },
+    "note": "Level 1 and Level 2 values are existing notebook results and were not recomputed."
+  },
+  "software": {
+    "numpy": "2.5.2",
+    "torch": "2.13.0+cu130",
+    "matplotlib": "3.11.1"
+  },
+  "notes": [
+    "No model was retrained.",
+    "Level 3 scores 1279 rows after its required 20-sample lag initialization; Levels 1 and 2 report 1300 rows.",
+    "Level 1 and Level 2 were fitted and scored on this record; their existing results are in-sample.",
+    "The legacy trial has no source-log identifier linking it to the newer manifest, so raw-source overlap with NARX training is unverified.",
+    "Legacy command normalization differs from the newer decoder; feature diagnostics quantify the resulting domain shift."
+  ]
+}
