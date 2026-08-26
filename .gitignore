@@ -237,3 +237,6 @@ __marimo__/
 data/**/*.BIN
 data/**/*.BIN.mat
 data/**/LOGS/
+
+# Local torch environment for narx retraining
+.venv-narx/
