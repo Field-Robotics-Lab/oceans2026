@@ -105,10 +105,24 @@ grouped by source log (37 train, 28 validation).
 - Key finding: recursive simulation diverges for surge while Levels 1 and 2 track,
   so physical structure is essential regularization at this data scale
 
-⚠️ **`blackbox_model.ipynb` is STALE and does not reproduce these numbers.** It still
-contains the earlier 3-lag / 20-neuron ReLU model trained on the single 130 s trial
-(one-step 0.927/0.876, recursive 0.050/0.822). The code and logs behind the published
-Level-3 results are not in this repository. Reconcile before the full paper.
+**Level-3 code is now in `narx/`** (merged from vogt_dev 2026-08-26). Verified:
+checkpoint and dataset SHA-256 match `model_manifest.json`; all four original-trial
+metrics recompute exactly from `narx/results/original_trial_level3_traces.csv`; and the
+scored trial's SHA-256 matches this repo's `usv_step_response_150_280s.csv`. Full
+re-execution needs `torch`, which is not installed here.
+
+The 130 s common trial is **not** in the Level-3 corpus (max cross-correlation 0.700
+against all 65 source logs), so Level 3 is out-of-sample on it while Levels 1 and 2 are
+in-sample. That asymmetry is now confirmed rather than suspected.
+
+⚠️ The reported "validation" pool is **not clean held-out data**. Per Carson's README:
+8 logs were used for early stopping/hyperparameters, 9 for model-family selection, and
+the 11-log final test "was opened and must not be described as untouched." The
+checkpoint was manually frozen after broader evaluation, not chosen by the tuning rule.
+The paper now says this.
+
+⚠️ **`blackbox_model.ipynb` is still STALE** — the earlier 3-lag / 20-neuron ReLU model
+(one-step 0.927/0.876, recursive 0.050/0.822). Superseded by `narx/`.
 
 **Diagnostic 4 — margin-based sufficiency** (`diagnostic4_margin.py`)
 - The Level-1 surge model supports the control design only over **[0.35, 1.28] m/s**,
