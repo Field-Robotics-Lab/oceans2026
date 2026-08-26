@@ -135,9 +135,6 @@ ax[2].legend(ncol=2, loc="upper left", frameon=False, handlelength=2.4, borderax
 ax[2].set_ylim(-1.15, 1.35)
 ax[2].set_xlim(t[0], t[-1])
 
-ax[2].text(t[m][0], -0.95, " Level 3 lag init", fontsize=6.2,
-           color=MUTED, va="bottom", ha="left")
-
 fig.savefig("paper/figures/combined_three_level.pdf", bbox_inches="tight")
 fig.savefig("paper/figures/combined_three_level.png", dpi=200, bbox_inches="tight")
 print("\nwrote paper/figures/combined_three_level.{pdf,png}")

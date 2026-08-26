@@ -136,7 +136,7 @@ ax1.plot([V_LO], [1.0], "o", ms=4.5, color=BLUE, mec="white", mew=1.1, zorder=5)
 ax1.annotate(rf"$v_{{\mathrm{{lo}}}} = {V_LO:.2f}$ m/s", xy=(V_LO, 1.0),
              xytext=(V_LO + 0.35, 1.30), fontsize=7, color=INK,
              arrowprops=dict(arrowstyle="-", color=MUTED, lw=0.6))
-ax1.set_title("(a)  robust stability binds at low speed",
+ax1.set_title("(a) robust stability binds at low speed",
               fontsize=7.5, loc="left", color=INK, pad=4)
 
 # (b) performance -- binds at the high-speed end
@@ -145,17 +145,17 @@ ax2.plot(speeds, bw_ratio, color=VERM, lw=1.6, zorder=4)
 ax2.set_ylim(0, 1.45)
 ax2.set_xlim(VMIN, VMAX)
 ax2.set_xlabel("forward speed $v_0$ (m/s)")
-ax2.set_ylabel("achieved BW / design BW")
+ax2.set_ylabel("achieved bandwidth / design bandwidth")
 ax2.plot([V_HI], [0.5], "o", ms=4.5, color=VERM, mec="white", mew=1.1, zorder=5)
 ax2.annotate(rf"$v_{{\mathrm{{hi}}}} = {V_HI:.2f}$ m/s", xy=(V_HI, 0.5),
              xytext=(V_HI + 0.28, 0.82), fontsize=7, color=INK,
              arrowprops=dict(arrowstyle="-", color=MUTED, lw=0.6))
-ax2.set_title("(b)  performance binds at high speed",
+ax2.set_title("(b) performance binds at high speed",
               fontsize=7.5, loc="left", color=INK, pad=4)
 
 ax2.annotate("", xy=(V_LO, 0.13), xytext=(V_HI, 0.13),
              arrowprops=dict(arrowstyle="<->", color=INK, lw=0.7))
-ax2.text((V_LO + V_HI) / 2, 0.20, "Level 1\nsufficient",
+ax2.text((V_LO + V_HI) / 2, 0.20, "Level 1\nsufficient here",
          ha="center", va="bottom", fontsize=6.5, color=INK, linespacing=1.15)
 
 fig.tight_layout(pad=0.4)
