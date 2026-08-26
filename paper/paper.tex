@@ -5,26 +5,14 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{booktabs}
-\usepackage{enumitem}
 \usepackage{xcolor}
 
-% ─────────────────────────────────────────────────────────────────────────────
-% This file is the TEAM-FACING document: the paper outline at outline-level
-% specificity, plus per-section status and action assignments. Detail lives in
-% classicalmodelling_notes.tex. When something settles in the notes, promote a
-% one-line summary here rather than copying the argument across.
-% ─────────────────────────────────────────────────────────────────────────────
+% Placeholders for measurements not yet in hand. Rendered loudly on purpose:
+% nothing with a \needsdata in it should be submitted.
+\newcommand{\needsdata}[1]{\textcolor{red}{\textbf{[NEEDS DATA: #1]}}}
 
-% Status tags, action assignments and pointers into the notes.
-\newcommand{\st}[1]{{\footnotesize\textsf{\textcolor{black!60}{[#1]}}}}
-\newcommand{\act}[2]{\textbf{Action (#1):} #2}
-\newcommand{\notesref}[1]{{\footnotesize\itshape See notes: #1.}}
-
-\newlist{outline}{itemize}{2}
-\setlist[outline]{leftmargin=1.1em,itemsep=2pt,parsep=1pt,topsep=3pt,label=--}
-
-% ── Metadata ─────────────────────────────────────────────────────────────────
-\title{From Interpretable to Black-Box: Dynamic Model Identification for Small USV Control Design}
+\title{From Interpretable to Black-Box: Dynamic Model Identification
+for Small USV Control Design}
 
 \author{
   \IEEEauthorblockN{Brian S. Bingham and Carson Vogt}
@@ -37,326 +25,604 @@
 }
 
 \begin{document}
-
 \maketitle
 
-\begin{center}
-\fbox{\parbox{0.92\columnwidth}{\footnotesize
-\textbf{TEAM OUTLINE.} Section content is stated at outline level only, with
-status and owner per section. The worked detail for the classical models
-(Levels~1 and 2) lives in \texttt{classicalmodelling\_notes.tex}, including the
-annotated reference checklist and the margin-diagnostic derivation.
-Status key: \st{OUTLINE} skeleton only, \st{DRAFTED} argument settled in notes,
-\st{DATA} waiting on measurement, \st{BLOCKED} waiting on a named item.}}
-\end{center}
-
-% ── Abstract ─────────────────────────────────────────────────────────────────
 \begin{abstract}
 Effective low-level feedback control of small underactuated uncrewed surface
 vehicles (USVs), specifically vessels under seven meters with a single thruster
-and rudder, requires dynamic models that provide both actionable design insight and
-predictive accuracy. Tow-tank testing is impractical at this scale;
-parameters must be identified solely from limited field trials. Existing system
+and rudder, requires dynamic models that provide both actionable design insight
+and predictive accuracy. Tow-tank testing is impractical at this scale, so
+parameters must be identified from limited field trials. Existing system
 identification methods span a wide range of model complexity but offer little
 guidance on how much fidelity is enough, because sufficiency is only meaningful
-relative to a stated purpose. Absent that specification, the default is a bias
+relative to a stated purpose. Absent that specification the default is a bias
 toward more fidelity, since the benefit of an added term is readily quantified
 while its costs in identifiability, experimental burden and obscured design
-insight are not.
-
-We propose a methodology built around a deliberate spectrum of three model levels,
-evaluated on common experimental data: (1) first-order, linear,
-single-input single-output (SISO) transfer functions, Nomoto-style models for
-surge and yaw that are immediately interpretable and support controller architecture
-intuition, but risk oversimplification when considered in isolation;
-(2) a physics-based nonlinear state-space formulation incorporating quadratic
-hydrodynamic drag; and (3) a Nonlinear AutoRegressive with eXogenous inputs (NARX)
-multilayer perceptron. Rather than seeking a single best model, the spectrum is
-used collectively: simple models anchor human intuition; structured nonlinear models
-expose which terms are dynamically salient; and the black-box model bounds the
-benefit of added complexity.
-
-Preliminary results from step-response field experiments demonstrate the approach.
-First-order SISO models achieve R2=0.93 (surge, tau=1.95 s) and R2=0.83
-(yaw rate, tau=0.47 s), providing direct controller tuning parameters.
-Cross-model diagnostics identify quadratic drag as the dominant surge nonlinearity
-and reveal that speed-dependent rudder effectiveness, a key coupling for
-underactuated control design, is not resolvable from a single short trial,
-motivating targeted data collection. A margin-based diagnostic makes the
-sufficiency question computable, reporting the forward speed at which the
-first-order model stops changing the control design. The NARX achieves one-step
-prediction $R^2=0.998$ for speed and $R^2=0.991$ for yaw rate; recursive simulation
-falls to $R^2=0.836$ and $R^2=0.768$, respectively, and exhibits surge divergence,
-demonstrating that physical structure provides essential regularization under
-limited data. High-speed segments are retained for subsequent regime-spanning
-analysis.
+insight are not. We propose a methodology built around a deliberate spectrum of
+three model levels evaluated on common experimental data: first-order linear
+single-input single-output transfer functions; a physics-based nonlinear
+state-space formulation with quadratic hydrodynamic drag; and a nonlinear
+autoregressive with exogenous inputs (NARX) multilayer perceptron. Rather than
+seeking a single best model, the spectrum is used collectively. Field results
+demonstrate the approach. First-order models achieve $R^2=0.93$ in surge
+($\tau=1.95$~s) and $R^2=0.83$ in yaw rate ($\tau=0.47$~s), giving direct
+controller tuning parameters. A margin-based diagnostic makes the sufficiency
+question computable and returns an interval rather than a threshold: the
+first-order surge model supports the control design only between 0.35 and
+1.28~m/s, under half the tested envelope, bounded below by robust stability and
+above by loss of closed-loop bandwidth. The NARX model reaches one-step
+prediction $R^2=0.998$ in speed and $0.989$ in yaw rate on the common trial, yet
+under recursive simulation on that same trial falls to $-1.988$ and $0.259$,
+diverging in surge where both structured models remain accurate. Physical
+structure provides essential regularization at this data scale.
 \end{abstract}
 
 \begin{IEEEkeywords}
 uncrewed surface vehicle, system identification, model spectrum, control-oriented
-modeling, robustness margin, sim-to-real transfer, nonlinear dynamics,
-underactuated vessels
+modeling, robustness margin, nonlinear dynamics, underactuated vessels
 \end{IEEEkeywords}
-
-% ─────────────────────────────────────────────────────────────────────────────
-\section*{Status Board}
-
-\begin{table}[h]
-\centering
-\footnotesize
-\setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{@{}llll@{}}
-\toprule
-Section & Status & Own & Next action \\
-\midrule
-I. Introduction      & OUTLINE & BB  & Sufficiency placement \\
-II. Related Work     & DRAFTED & BB  & Verify Woo 2018 (CV) \\
-III. Methodology     & OUTLINE & BB, CV & Compute Diagnostic~4 \\
-IV. Platform, Data   & DATA    & TBD & Vehicle specifications \\
-V. Results           & BLOCKED & BB, CV & Blocked on III, IV \\
-VI. Discussion       & OUTLINE & TBD & Follows V \\
-VII. Conclusion      & OUTLINE & BB  & Follows VI \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Team assignment:} Level~1 and 2, the classical models, are BB. Level~3,
-the black-box NARX model, is CV.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Introduction}
 \label{sec:intro}
-\st{OUTLINE} \st{BB}
 
-\begin{outline}
-\item Motivate: small USVs under 7~m with a single thruster and rudder; low-level
-  speed and heading control is a prerequisite for higher-level autonomy.
-\item The tension: ``how much fidelity is enough'' has no answer until ``enough for
-  what'' is specified. Absent that, practice defaults to more fidelity, because the
-  benefit of an added term is measurable and its cost is not.
-\item Framing: Box, all models are wrong but some are
-  useful~\cite{box1987empirical}; a spectrum is collectively more useful than any one
-  complex model.
-\item The decision ladder D1--D5: what a control-oriented model can support
-  (architecture choice, end-to-end verification, relative comparison, tuning
-  rehearsal) and what it cannot (gains that transfer without field tuning).
-\item Scope: single thruster plus rudder, under 7~m, field-identified parameters.
-  Distinct from differential-thrust craft and from vessels with tow-tank access.
-\item Contributions: the three-level spectrum; cross-model diagnostics; a
-  margin-based sufficiency test; a targeted data-collection framework.
-\end{outline}
+Small uncrewed surface vehicles, here taken as vessels under seven meters driven
+by a single thruster and rudder, are increasingly deployed for survey, inspection
+and autonomy research. Low-level speed and heading control is a prerequisite for
+any higher-level autonomy on such a platform, and that control loop has to be
+designed against a dynamic model.
 
-\act{BB}{Decide whether the sufficiency argument stays inside the introduction or
-becomes a short standalone section before Sec.~\ref{sec:methodology}. It currently
-runs long enough to unbalance the introduction.}
+Which model is the right one depends on what the model is for. The question ``how
+much fidelity is enough'' has no answer until ``enough for what'' has been
+specified, and because that specification is usually left implicit, practice
+defaults to a bias toward more fidelity. The reason is asymmetric accounting. The
+benefit of an added term is easy to measure as an increment in $R^2$, while its
+costs are diffuse and rarely tallied.
 
-\notesref{Introduction, including the four concrete costs of excess fidelity, the
-two independent bounds on useful fidelity and the Box versus Skelton distinction}
+Those costs are concrete. First, added terms degrade the conditioning of the fit,
+so parameters that were previously well determined become less
+certain~\cite{suarez2026regularized}. That is a loss taken rather than a gain
+forgone. Second, every added term needs excitation to identify it, so fidelity
+converts directly into field trials on a platform where trials are the binding
+constraint. Third, a model with many terms predicts without explaining, and
+cannot say which term drives the behavior, which is what architecture selection
+needs from it. Fourth, a high-fidelity model invites the belief that computed
+gains will transfer to the vehicle, which can make a team less likely to plan
+field validation. That last one is a schedule and safety risk rather than a
+modeling one.
+
+Broadly this is the overfitting problem, and driving $R^2$ upward is a naive
+objective once it is separated from what the model is for. Machine learning made
+the trade visible by convention through held-out data and pays it down through
+regularization~\cite{suarez2026regularized}. Held-out scoring is nonetheless a
+weaker check in this setting, because the parameters and not only the predictions
+are the deliverable. A maneuvering model can pass a prediction test while its
+individual coefficients are physically
+meaningless~\cite{alexandersson2022system}. That motivates diagnostics which
+compare across model structures rather than scoring one structure against held-out
+data.
+
+Prior work is not naive about this, and the most careful example shows where the
+difficulty sits. Sonnenburg and Woolsey~\cite{sonnenburg2013modeling} build
+genuine quantitative machinery for sufficiency, with a cost function evaluated on
+held-out validation maneuvers and tabulated per model and per regime. The final
+decision is nonetheless made by judgment, discarding the model that scores best
+because its two extra parameters are not worth the slight edge in turn-rate
+estimation. This is not a lapse on their part. Their cost function scores the
+benefit of added parameters, and no comparable metric exists for the cost, so
+there is nothing for the judgment to be replaced by. The quantitative apparatus
+stops one step short of the decision it was built to support.
+
+Two distinct claims bear on this, and the second is the one we need. Box's claim
+is epistemic: correctness is unattainable, so a wrong model cannot be made correct
+by excessive elaboration, and overparameterization is often the mark of
+mediocrity~\cite{box1976science,box1987empirical}. Parsimony follows from the
+impossibility of truth. The stronger claim is about decisions. Additional
+correctness is often genuinely available and should still be declined when it
+trades against the outcome. Skelton put this in control terms in 1989: model
+errors need not be small but simply appropriate for the control
+design~\cite{skelton1989model}. Fidelity is not the criterion, fitness for the
+design decision is. Skelton's criterion has been available for thirty-five years
+and remains qualitative, since ``appropriate'' is not a computable predicate. The
+identification-for-control tradition~\cite{ljung1999system,gevers2005identification}
+formalized the idea for experiment design without producing a field test that a
+small-boat practitioner can run.
+
+What a model of this class can support, in rough order of increasing demand, is a
+ladder of four design decisions. D1, choose a control architecture, is the weakest
+requirement: the model need only get the dominant structure right, meaning how
+many states, which couplings matter and where the dominant timescale sits. D2,
+verify the architecture end to end, catches structural and integration faults on
+the bench rather than on the water. D3, compare architectures relatively, asks
+what a feedforward term or a rate filter is worth, and differences between
+architectures survive model error far better than absolute values do. D4, rehearse
+the tuning process, builds the procedure and tooling that will be used to tune in
+the field, where the deliverable is the workflow rather than the gains it
+produces. What a model of this class cannot support, and we label this D5, is
+identifying parameters and designing the controller in simulation and then
+expecting zero-shot transfer. Saying this plainly is unusual and it is the honest
+answer to why one should model at all when re-tuning happens in the field anyway.
+The purchase is D1 through D4. It is not the gains.
+
+Our scope is the single thruster plus rudder vessel under seven meters with
+field-identified parameters. Underactuated rudder steering is the more interesting
+case, because control authority is an explicit function of forward speed, so the
+steering and speed channels cannot be treated as independent design problems.
+Differential or holonomic thrust reframes the problem rather than simplifying it
+and removes precisely this coupling. It is also the more representative case for
+the installed base of small craft, even though the USV literature is dominated by
+differential-thrust research platforms. It is distinct as well from large vessels,
+where scale-model tow-tank testing is a reasonable route to parameters and
+identification is not the binding constraint.
+
+This paper contributes a three-level model spectrum methodology for this vehicle
+class; cross-model diagnostics that identify structurally salient dynamics; a
+margin-based sufficiency test that reports the operating range over which added
+model fidelity stops changing the control design, replacing a judgment call with a
+computed interval; an empirical demonstration of when physical structure is
+required, by way of black-box simulation failure under limited data; and a
+targeted data-collection framework motivated by the diagnostic gaps.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Closely Related Work}
 \label{sec:related}
-\st{DRAFTED} \st{BB}
 
-\begin{outline}
-\item Response models as the minimal control-oriented description: Nomoto's
-  first-order steering model~\cite{nomoto1957steering}, its place in the standard
-  formulation~\cite{fossen2011handbook}, and the identification tradition founded by
-  {\AA}str{\"o}m and K{\"a}llstr{\"o}m~\cite{astrom1976identification}.
-\item Physics-based maneuvering models and why their coefficients resist
-  identification from field data~\cite{abkowitz1964lectures,suarez2026regularized,%
-  xu2025review,alexandersson2022system}.
-\item Control-oriented identification of small craft, led by the nearest antecedent,
-  Sonnenburg and Woolsey~\cite{sonnenburg2013modeling}, with
-  \cite{eriksen2017modeling,muske2008identification,wirtensohn2013modelling,%
-  morel2025practical}.
-\item Data-driven and grey-box alternatives~\cite{woo2018dynamic,xu2022pinn,%
-  zhang2024gbm}, and the one-step versus recursive-simulation evaluation gap.
-\item Positioning, three gaps: prior work selects one model rather than retaining the
-  set; data-driven marine models are evaluated on one-step prediction only; the
-  small rudder-steered vessel is underrepresented.
-\end{outline}
+\subsection{Response Models as the Minimal Description}
 
-\textbf{Completed (CV):} Woo \emph{et al.}\ evaluate a simplified-model/LSTM
-hybrid through forward simulation on held-out maneuver records
-\cite{woo2018dynamic}; the paper does not support a one-step-only characterization.
+The minimal control-oriented description of a steered vessel is Nomoto's
+first-order steering model~\cite{nomoto1957steering}, which reduces the steering
+response to a gain and a time constant and remains the standard starting point in
+the modern formulation~\cite{fossen2011handbook}. The identification tradition
+built on it was founded by {\AA}str{\"o}m and
+K{\"a}llstr{\"o}m~\cite{astrom1976identification}, who estimated steering dynamics
+from full-scale trials rather than from tank data. That lineage is the direct
+ancestor of our Level~1.
 
-\act{BB}{Confirm the Skelton framing carries the ``appropriate, not small''
-criterion as quoted, once the paper is in hand.}
+\subsection{Physics-Based Maneuvering Models and Identifiability}
 
-\notesref{Closely Related Work, an annotated checklist giving for each reference the
-locator, why it is cited and what remains unresolved}
+Physics-based maneuvering models in the Abkowitz
+tradition~\cite{abkowitz1964lectures} expand the hydrodynamic forces in a
+polynomial series whose coefficients carry physical meaning. The difficulty is
+that those coefficients resist identification from field data. Multicollinearity
+among regressors makes individual coefficients unstable even when the aggregate
+prediction is
+good~\cite{suarez2026regularized,alexandersson2022system,xu2025review}. This is
+the identifiability barrier that makes ``add another term'' a more expensive
+proposition than its $\Delta R^2$ suggests.
+
+\subsection{Control-Oriented Identification of Small Craft}
+
+The nearest antecedent to this work is Sonnenburg and
+Woolsey~\cite{sonnenburg2013modeling,sonnenburg2010control}, who identify and
+compare a family of models for a small planing craft and evaluate them for control
+design. Related efforts span autonomous surface craft and small workboats,
+including~\cite{eriksen2017modeling,muske2008identification,wirtensohn2013modelling,%
+morel2023modelling,morel2025practical,tanveer2022yaw,sarda2016nmpc}. The common
+pattern is a comparison across candidate structures followed by selection of one,
+after which the discarded models stop contributing.
+
+\subsection{Data-Driven and Grey-Box Alternatives}
+
+Data-driven and grey-box marine models have grown quickly, spanning recurrent
+architectures~\cite{woo2018dynamic}, physics-informed
+networks~\cite{xu2022pinn} and gradient-boosted
+ensembles~\cite{zhang2024gbm}. The NARX formulation we adopt at Level~3 descends
+from the neural identification literature of the early
+1990s~\cite{narendra1990identification} and its delayed-input
+variants~\cite{lin1997delay}. Evaluation practice is uneven across this
+literature. The distinction that matters for control is between one-step
+prediction, which reads measured state history at every sample, and recursive
+simulation, which feeds predicted states back and is what a controller design
+loop actually requires. Woo \emph{et al.}~\cite{woo2018dynamic} do validate
+through forward simulation on held-out maneuver records, so their work is not an
+instance of the gap, and we report both metrics for the same reason.
+
+\subsection{Positioning}
+
+Three gaps motivate this work. Prior work resolves sufficiency by selecting one
+model rather than retaining the set. Evaluation of data-driven marine models is
+inconsistent about the one-step versus recursive distinction. The small
+rudder-steered vessel is underrepresented relative to differential-thrust research
+platforms.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Model Spectrum Methodology}
 \label{sec:methodology}
-\st{OUTLINE} \st{BB}
 
-\begin{outline}
-\item Level~1: first-order linear SISO transfer functions for surge and yaw,
-  identified as discrete ARX(1,1) by ordinary least squares.
-\item Level~2: nonlinear state-space with quadratic drag, identified in two phases so
-  that drag is estimated from coasting and thrust gain from powered segments.
-\item Level~3: fixed-tap residual NARX multilayer perceptron with 19 lagged inputs,
-  one 64-neuron tanh hidden layer and two state-increment outputs. The lag structure
-  is a project-specific implementation choice consistent with delayed-input NARX
-  models~\cite{lin1997delay}. The model is trained using source-log-grouped data and
-  evaluated using both one-step prediction and recursive simulation
-  \cite{narendra1990identification}. It serves as a compact black-box reference in
-  the three-level comparison; no claim is made that this architecture is optimal.
-\item Cross-model diagnostics, four in total: speed-dependent rudder gain; drag
-  nonlinearity; rudder-induced surge drag; and whether the added fidelity falls
-  inside the robustness margin of the design.
-\end{outline}
+The three levels are not a fidelity ladder to be climbed and discarded. They map
+onto the decision ladder of Sec.~\ref{sec:intro}: Level~1 serves D1, Level~2
+serves D2 and D3, and Level~3 bounds how far D4 could be pushed with more data.
 
-\act{BB}{Compute Diagnostic~4 on the existing dataset. Minimum viable form is the
-gain ratio against the Level-1 gain margin plus the crossover speed for surge.}
+\subsection{Level 1: First-Order Linear SISO Models}
 
-\textbf{Completed (CV):} Level~3 uses 19 lagged inputs, one
-64-neuron tanh hidden layer, state-increment outputs and source-log-grouped data
-partitions. State history extends to 0.5~s, throttle history to 2~s and rudder
-history to 1~s.
+Level~1 treats surge and yaw as decoupled first-order channels,
+\begin{equation}
+G_v(s) = \frac{K_v}{\tau_v s + 1}, \qquad
+G_r(s) = \frac{K_r}{\tau_r s + 1},
+\end{equation}
+mapping normalized throttle to forward speed and normalized rudder to yaw rate.
+Both are identified as discrete ARX(1,1) models by ordinary least squares on the
+10~Hz record and converted to continuous time. The parameters are immediately
+usable: $\tau$ sets the achievable loop bandwidth and $K$ sets the loop gain, so a
+PI controller follows directly.
 
-\textbf{Completed (CV):} Level~3 is framed as a compact NARX NN black-box
-reference.
+\subsection{Level 2: Nonlinear State-Space Model}
 
-\textbf{Completed (CV):} Level~3 evaluation uses the terms one-step prediction and
-recursive simulation.
+Level~2 retains the decoupled channel structure but replaces linear damping in
+surge with quadratic hydrodynamic drag,
+\begin{align}
+\dot v &= k_T\,u - d_2\,v|v|, \label{eq:l2surge}\\
+\dot r &= k_\delta\,\delta - d_r\,r, \label{eq:l2yaw}
+\end{align}
+with $u$ the normalized throttle and $\delta$ the normalized rudder.
 
-\act{CV}{Level~3 lives on a separate branch; Levels~1 and 2 are on
-\texttt{traditional-models}. Coordinate the merge so Sec.~\ref{sec:methodology} reads
-as one piece.}
+Identification is two-phase, and the phasing is what makes it work. Fitting
+\eqref{eq:l2surge} jointly for $k_T$ and $d_2$ is poorly conditioned, because
+thrust and drag are both large and nearly cancelling during steady runs, so the
+data constrains their difference far better than either term. Instead $d_2$ is
+estimated from coasting segments alone, where $u=0$ and \eqref{eq:l2surge}
+reduces to $\dot v = -d_2 v|v|$ with a single unknown. With $d_2$ fixed, $k_T$
+follows from the powered segments by linear least squares.
 
-\notesref{Model Spectrum Methodology, and the four-step derivation of Diagnostic~4
-with the Level-2 linearization}
+\subsection{Level 3: Black-Box NARX Model}
+
+Level~3 is a fixed-tap residual NARX multilayer perceptron with 19 lagged inputs,
+one hidden layer of 64 tanh units and two outputs which are state increments
+rather than absolute states. State history extends 0.5~s into the past, throttle
+history 2~s and rudder history 1~s. The lag structure is a project-specific
+implementation choice consistent with delayed-input NARX
+models~\cite{lin1997delay}. Being multi-input multi-output, the model is free to
+discover the surge-yaw coupling that Levels~1 and~2 assume away.
+
+Level~3 is a compact black-box reference point in the comparison rather than a
+competitor, and no claim is made that this architecture is optimal. Its role is to
+bound the benefit of added complexity at the available data scale. Evaluation
+reports one-step prediction and recursive simulation separately, following the
+distinction drawn in Sec.~\ref{sec:related}.
+
+\subsection{Cross-Model Diagnostics}
+
+The value of the spectrum is the comparison across levels rather than the three
+fits individually. Four diagnostics extract that comparison. The first three ask
+whether a term is present in the data. The fourth asks whether it changes the
+design.
+
+\emph{Diagnostic 1, speed-dependent rudder gain.} Replace the constant $k_\delta$
+in \eqref{eq:l2yaw} with a speed-scaled $k_\delta v$ and test whether the
+yaw-rate fit improves.
+
+\emph{Diagnostic 2, drag nonlinearity.} Fit linear and quadratic damping to the
+coasting deceleration and compare.
+
+\emph{Diagnostic 3, rudder-induced surge drag.} Correlate $\delta^2$ against the
+surge residual of the Level-2 fit.
+
+\emph{Diagnostic 4, is the added fidelity inside the robustness margin?} The
+robustness margin of a compensator is a budget for model error, so the test is
+whether the Level-1 to Level-2 discrepancy fits inside the margin of a controller
+designed from Level~1 alone. The construction has four steps.
+
+\emph{Step 1.} Design a nominal compensator from Level~1 only. We use an internal
+model control PI, $C(s) = (\tau_v s + 1)/(K_v \lambda s)$, which cancels the
+Level-1 pole and gives a nominal loop $L = 1/(\lambda s)$ and complementary
+sensitivity $T(s) = 1/(\lambda s + 1)$, with $\lambda$ the intended closed-loop
+time constant.
+
+\emph{Step 2.} Linearize Level~2 about operating points spanning the tested
+envelope. For surge, $\partial(v|v|)/\partial v = 2v_0$ for $v_0>0$, so
+\eqref{eq:l2surge} gives a speed-scheduled first-order plant
+\begin{equation}
+G_2(s,v_0) = \frac{K_2(v_0)}{\tau_2(v_0)s+1}, \quad
+\tau_2 = \frac{1}{2 d_2 v_0}, \quad K_2 = \frac{k_T}{2 d_2 v_0},
+\label{eq:lin}
+\end{equation}
+in which both the gain and the time constant fall as $1/v_0$.
+
+\emph{Step 3.} Form the multiplicative model error
+$\ell(\omega,v_0) = |G_2(j\omega,v_0)/G_1(j\omega) - 1|$ and test robust
+stability, $\|\ell T\|_\infty < 1$.
+
+\emph{Step 4.} Report the operating range over which the test passes. The output
+is not a yes or no but the speeds at which Level~1 stops being sufficient, which
+is an actionable number for a control designer and a direct answer to ``enough for
+what.''
+
+Step~3 alone turns out to be insufficient, and Sec.~\ref{sec:results} reports why.
+Robust stability is a statement about whether the loop remains stable, and
+quadratic drag is stabilizing, so at high speed the Level-1 design becomes
+sluggish rather than unstable and the stability test keeps passing. We therefore
+add a performance criterion alongside it: apply the Level-1 compensator to
+$G_2(s,v_0)$ and compare the achieved closed-loop bandwidth against the design
+intent $1/\lambda$. The pair of criteria bounds sufficiency from both sides.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Experimental Platform and Data Collection}
 \label{sec:experiment}
-\st{DATA} \st{TBD}
 
-\begin{outline}
-\item Vehicle description, autopilot and sensing. Inputs are normalized RC throttle
-  and rudder; outputs are GPS speed and IMU yaw rate.
-\item Data cleaning: usable manual-mode records are aligned to a 10~Hz grid and
-  segmented at mode, signal-freshness and quality discontinuities.
-\item Current Level~3 dataset: 44,133 samples in 70 slow-region segments from 65
-  source logs. The empirical slow-region rule excludes a complete segment after at
-  least 1~s continuously above 3.4028~m/s.
-\item Source-log-grouped allocation keeps every segment from one recording in one
-  partition. Current training uses 37 logs (40 segments, 28,023 rows); validation
-  uses every other viable slow-region recording: 28 separate logs (30 segments,
-  16,110 rows).
-\item Ten complete high-speed, planing-consistent segments are retained separately
-  for exploratory regime-spanning models and are not used in the current Level~3
-  paper results. The label is empirical GPS speed over ground, not a verified physical
-  planing transition.
-\item For direct comparison with Levels~1 and 2, the frozen Level~3 model is also
-  evaluated on their original 1,300-row step-response trial. Its 20-sample lag history
-  leaves 1,279 scored rows; the existing Level~1 and 2 results use all 1,300 rows.
-\end{outline}
+\subsection{Vehicle}
 
-\textbf{Completed (CV):} The Level~3 dataset and grouped training/validation allocation
-are documented for the current slow-region experiment.
+The platform is \needsdata{make and model}, approximately
+\needsdata{length}~m in length with a mass of \needsdata{mass}~kg, driven by
+\needsdata{propulsion description} and steered by a single rudder. Guidance and
+logging run on an ArduPilot autopilot with GPS and an inertial measurement unit.
+The speed range spans \needsdata{speed range and any regime transition speeds}.
+Control inputs are RC throttle (channel~3) and rudder (channel~1), logged as
+1100--1900~$\mu$s PWM and normalized to $[-1,1]$ about the 1500~$\mu$s neutral
+point. Measured outputs are GPS speed over ground at 5~Hz and IMU yaw rate at
+137~Hz.
 
-\act{TBD}{Fill the vehicle specifications: make, model, length, mass, propulsion and
-the speed range including any regime transitions.}
+\subsection{Data Cleaning}
 
-\act{TBD}{Plan the rudder-sweep trials. These are what resolve the speed-dependent
-rudder gain that Diagnostic~1 could not settle.}
+Multi-rate streams are aligned to a common 10~Hz grid by linear interpolation.
+Records are segmented at mode changes, signal-freshness discontinuities and
+quality flags, so that no segment spans a transition that the models are not
+intended to represent.
+
+\subsection{Datasets}
+
+Levels~1 and~2 are identified from a single step-response trial, a 130~s working
+window drawn from a 341~s recording, covering throttle 0--39\% and speed
+0--2.9~m/s and comprising 1{,}300 samples at 10~Hz. One 29.3~s gap caused by
+vessel repositioning is handled by segmentation. This is intentionally minimal, a
+proof of concept for the workflow rather than a characterization of the vehicle.
+
+Level~3 draws on a larger corpus: 44{,}133 samples in 70 slow-region segments
+from 65 source logs. The slow-region rule excludes a complete segment once speed
+stays above 3.4028~m/s for at least 1~s continuously. Allocation is grouped by
+source log, so every segment from one recording lands in a single partition and no
+recording is split across training and validation. Training uses 37 logs, being 40
+segments and 28{,}023 rows. Validation uses every other viable slow-region
+recording, being 28 logs, 30 segments and 16{,}110 rows. Ten complete high-speed
+segments consistent with planing are held aside for later regime-spanning work and
+are not used in the results below. That label is empirical GPS speed over ground
+rather than a verified physical planing transition.
+
+For direct comparison across levels, the frozen Level~3 model is also evaluated on
+the same 130~s trial used for Levels~1 and~2. Its 20-sample lag history leaves
+1{,}279 scored rows against the 1{,}300 rows available to Levels~1 and~2.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Results}
 \label{sec:results}
-\st{BLOCKED} \st{TBD}
 
-\begin{outline}
-\item Level~1: identified time constants and gains, simulation fit, and a measured
-  against simulated figure.
-\item Level~2: identified parameters, coasting against joint fit for the drag term,
-  and fit comparison against Level~1.
-\item Level~3: on all 30 validation segments, one-step macro-NRMSE is 0.084 and
-  recursive macro-NRMSE is 0.425. Speed $R^2$ changes from 0.998 to 0.836 and yaw-rate
-  $R^2$ from 0.991 to 0.768. Recursive simulation covers every validation sample.
-\item On the common 130~s comparison trial, Level~3 one-step $R^2$ is 0.998 for
-  speed and 0.989 for yaw rate; recursive $R^2$ is $-1.988$ and 0.259, respectively.
-  Level~3 scores 1,279 rows after lag initialization, compared with 1,300 rows in the
-  existing Level~1 and 2 results.
-\item Cross-model diagnostic summary: four diagnostics, findings and the implication
-  each carries for model and control design.
-\end{outline}
+\subsection{Level 1}
 
-\textbf{Completed (CV):} Level~3 one-step and recursive metrics and the surge
-validation figure use all viable nontraining slow-region recordings.
+Ordinary least squares on the step-response trial gives
+\begin{equation}
+G_v(s) = \frac{6.42}{1.95 s + 1}, \qquad
+G_r(s) = \frac{0.771}{0.471 s + 1},
+\end{equation}
+with simulation $R^2 = 0.930$ in surge and $0.826$ in yaw rate. The surge time
+constant of 1.95~s and the yaw time constant of 0.471~s differ by a factor of
+four, which alone settles the architecture question at D1: the two channels can be
+given separate loops at separate bandwidths.
+
+\subsection{Level 2}
+
+Two-phase identification gives
+\begin{align}
+\dot v &= 3.963\,u - 0.438\,v|v|, \\
+\dot r &= 1.474\,\delta - 1.912\,r,
+\end{align}
+with $R^2 = 0.909$ in surge and $0.820$ in yaw rate. Both are marginally below
+Level~1 on this trial, which is expected: Level~1 is fit to minimize exactly this
+error on exactly this data, while Level~2 estimates its drag coefficient from
+coasting segments alone. The comparison that matters is not the $R^2$ but what the
+structure exposes, and Sec.~\ref{sec:diag-results} takes that up.
+
+Estimating $d_2$ from coasting is what makes the fit usable. The joint fit is
+poorly conditioned for the reason given in Sec.~\ref{sec:methodology}, and the
+resulting parameters are sensitive to the powered-segment weighting in a way the
+coasting estimate is not.
+
+\subsection{Level 3}
+\label{sec:l3-results}
+
+On the full slow-region validation set of 30 segments from 28 held-out logs, the
+one-step macro-NRMSE is 0.084 and the recursive macro-NRMSE is 0.425. Speed $R^2$
+falls from 0.998 one-step to 0.836 recursive, and yaw-rate $R^2$ from 0.991 to
+0.768. Recursive simulation covers every validation sample.
+Fig.~\ref{fig:level3-surge-validation} shows the surge channel across that set.
+
+The comparison on the common trial is sharper. Level~3 reaches one-step $R^2$ of
+0.998 in speed and 0.989 in yaw rate, above both structured models on the same
+data. Under recursive simulation on that same trial it falls to $-1.988$ in speed
+and $0.259$ in yaw rate. A negative $R^2$ means the model is a worse predictor
+than the mean of the measured signal. Fig.~\ref{fig:combined} shows what that
+looks like: the surge trajectory drifts below zero and stays there for tens of
+seconds while Levels~1 and~2 track the measured response.
+
+The gap between one-step and recursive is the result. One-step prediction reads
+the measured state at every sample, so a model can score 0.998 while having
+learned little more than that the state changes slowly. Recursive simulation
+removes that support, and the small per-step increment errors accumulate without
+any physical constraint to arrest them. Levels~1 and~2 cannot drift this way
+because the drag term bounds the surge state structurally.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/diagnostic4_margin.pdf}
+  \caption{Diagnostic~4. (a) Robust stability of the Level-1 compensator against
+  the Level-2 linearization binds at low speed, where the quadratic-drag
+  linearization is singular. (b) Achieved closed-loop bandwidth binds at high
+  speed. The shaded band is the interval over which the Level-1 model supports the
+  design. The yaw channel (a, dotted) never approaches the limit, so Level~2
+  changes nothing for yaw control.}
+  \label{fig:diagnostic4}
+\end{figure}
+
+\subsection{Cross-Model Diagnostic Summary}
+\label{sec:diag-results}
+
+\emph{Diagnostic 1} finds no improvement from a speed-dependent rudder gain
+($\Delta R^2 = -0.03$). The trial holds forward speed nearly constant during the
+rudder steps, so the regressor is barely excited. This flags a gap in data
+coverage rather than absence of the effect, and it is the primary target of the
+next collection campaign.
+
+\emph{Diagnostic 2} finds quadratic damping clearly dominant, with
+$\Delta R^2 = +0.20$ over the linear fit, $d_1 \approx 0$ and
+$d_2 = 0.438$~m$^{-1}$. This is the direct empirical warrant for the Level-2
+structure.
+
+\emph{Diagnostic 3} finds rudder-induced surge drag negligible, with a correlation
+of $r=-0.08$ between $\delta^2$ and the surge residual. The coupling term is not
+warranted by this data.
+
+\emph{Diagnostic 4} is reported in Fig.~\ref{fig:diagnostic4}, computed with
+$\lambda = 1.0$~s. The result is an interval rather than a threshold. Robust
+stability fails below $v_0 = 0.35$~m/s, and this lower bound has the closed form
+\begin{equation}
+v_{\text{lo}} = \frac{k_T}{4 d_2 K_v},
+\end{equation}
+which is independent of $\lambda$ because $|T|\leq 1$ places the supremum of
+$\ell |T|$ at DC. The mechanism is the $1/v_0$ singularity in \eqref{eq:lin}:
+quadratic drag provides no linear damping at zero speed, so the linearized gain
+and time constant both diverge and no first-order fit can track them.
+
+At the upper end the stability test never fails. At 2.9~m/s the model error is
+still within budget at $\|\ell T\|_\infty = 0.76$. What fails is performance: the
+Level-1 compensator applied to the Level-2 plant retains only 20\% of its intended
+bandwidth at 2.9~m/s, crossing 50\% at $v_{\text{hi}} = 1.28$~m/s. Quadratic drag
+is stabilizing, so the Level-1 design at speed is conservative rather than unsafe.
+The failure mode is sluggishness.
+
+Taken together, the Level-1 surge model supports the control design only over
+roughly $[0.35, 1.28]$~m/s, under half of the tested envelope. Both bounds are
+insensitive to the design knob: sweeping $\lambda$ from 0.5 to 3~s moves
+$v_{\text{hi}}$ only between 1.23 and 1.61~m/s and leaves $v_{\text{lo}}$
+unchanged.
+
+Two by-products of the construction are worth recording. The Level-1 fit is
+anchored where it coincides with the Level-2 linearization, at $v_0 = 0.70$~m/s
+for the gain and 0.59~m/s for the time constant, which is well below the top of
+the envelope and explains why the single-trial linear fit degrades at speed. And
+the high-frequency limit of the model error, $k_T \tau_v / K_v = 1.20$, is
+independent of $v_0$, so the discrepancy at high frequency is a fixed property of
+the two fits rather than an operating-point effect.
+
+For yaw the picture is different. Level~2 linearizes to
+$r/\delta = 0.771/(0.523s+1)$ against Level~1's $0.771/(0.471s+1)$: identical DC
+gain and an 11\% difference in time constant, giving $\|\ell T\|_\infty = 0.034$.
+Level~2 buys nothing for yaw control across the whole envelope, and we say so
+rather than let the added structure imply otherwise.
 
 \begin{figure*}[t]
   \centering
   \includegraphics[width=\textwidth]{figures/level3_surge_validation.pdf}
-  \caption{Level~3 surge prediction on the complete slow-region validation set:
-  28 source logs containing 30 segments. Each segment is initialized with 2~s of
-  measured history. One-step prediction continues to use measured state history;
-  recursive simulation feeds predicted states back while replaying recorded throttle.
-  Alternating backgrounds and short gaps mark segment boundaries. Reported NRMSE
-  values are segment-macro averages over speed and yaw-rate errors normalized by
-  training-only channel scales.}
+  \caption{Level~3 surge prediction on the complete slow-region validation set of
+  30 segments from 28 held-out source logs. Each segment is initialized with 2~s
+  of measured history. One-step prediction continues to use measured state
+  history; recursive simulation feeds predicted states back while replaying
+  recorded throttle. Alternating backgrounds and short gaps mark segment
+  boundaries. Reported NRMSE values are segment-macro averages over speed and
+  yaw-rate errors normalized by training-only channel scales.}
   \label{fig:level3-surge-validation}
 \end{figure*}
 
-\act{BB, CV}{Produce the combined figure showing measured data against all three
-levels on one set of axes.}
-
-\act{TBD}{Blocked on Sec.~\ref{sec:methodology} Diagnostic~4 and on the vehicle
-specifications.}
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/preview/combined_three_level_preview.pdf}
+  \caption{All three levels under recursive simulation on the common 130~s trial.
+  Levels~1 and~2 track the measured response; Level~3 diverges in surge, driving
+  the predicted speed below zero for tens of seconds despite reaching the highest
+  one-step accuracy of the three. Level~3 begins after 2~s of measured lag
+  initialization, so it scores 1{,}279 rows against 1{,}300 for Levels~1 and~2.}
+  \label{fig:combined}
+\end{figure*}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Discussion}
 \label{sec:discussion}
-\st{OUTLINE} \st{TBD}
 
-\begin{outline}
-\item What the spectrum reveals for this vehicle class: weak surge-yaw coupling at
-  the speeds tested, significant quadratic drag, and a speed-dependent rudder gain
-  that the current data can neither confirm nor deny.
-\item Implications for compensator architecture, level by level.
-\item Level~3 provides the black-box comparison. Its high one-step accuracy and
-  weaker recursive simulation show why predictive fit and simulation usefulness
-  should be considered separately.
-\item Return to D1--D5: none of the three levels reaches D5, and saying so plainly is
-  the honest position. The defensible claim is D1 through D4.
-\item Limitations of the current dataset and what the full study adds.
-\end{outline}
+\subsection{What the Spectrum Reveals}
+
+For this vehicle class and at the speeds tested, surge and yaw are weakly coupled,
+so decoupled SISO controllers are a defensible starting point. Quadratic drag is
+significant, which means a speed-hold controller needs nonlinear feedforward and a
+purely linear controller will show speed-dependent steady-state error. Whether the
+rudder gain scales with forward speed can be neither confirmed nor denied from
+this data, and that is the single largest gap the expanded dataset must fill.
+
+No one of the three models exposes all of this. Level~1 alone gives no reason to
+suspect the drag is quadratic. Level~2 alone does not reveal that its extra
+structure is inert for yaw. Level~3 alone would report an excellent one-step score
+and mislead anyone who took it to simulation.
+
+\subsection{Implications for Compensator Architecture}
+
+Level~1 supports a baseline PI structure with directly identified gains, valid
+over the interval Diagnostic~4 returns. Level~2 justifies nonlinear feedforward on
+the surge channel, and Diagnostic~4 says where that becomes necessary rather than
+merely available. On the yaw channel Level~2 changes nothing, so the added
+structure should not be carried into the design. Gain scheduling on the rudder
+loop remains open and is gated on Diagnostic~1 rather than on Level~2. Level~3
+motivates model-predictive or learning-based control once the data supports it,
+and the recursive result says plainly that it does not yet.
+
+\subsection{Predictive Fit Against Simulation Usefulness}
+
+The Level-3 result is the paper's sharpest empirical claim. A model can be the
+most accurate one-step predictor in the comparison and simultaneously the least
+useful simulator, and the two properties are measured by numbers that differ by
+more than two units of $R^2$ on identical data. Any evaluation that reports only
+one-step accuracy is silent about the property a control designer needs. Physical
+structure earns its place here not by fitting better but by constraining what the
+model can do when the measurements are taken away.
+
+\subsection{Returning to the Decision Ladder}
+
+None of the three levels reaches D5, and saying so plainly is the honest position.
+Even the highest-fidelity model here cannot eliminate field tuning. The defensible
+claim is D1 through D4: the spectrum says which architecture to build, permits
+end-to-end verification, supports relative comparison between candidates and
+identifies where in the parameter space field tuning will actually be needed, so
+that the tuning workflow can be built in advance.
+
+\subsection{Limitations}
+
+Levels~1 and~2 rest on a single trial covering 0--2.9~m/s and throttle to 39\%, so
+the identified parameters are not a characterization of the vehicle across its
+envelope. Diagnostic~4 inherits that limitation, since the Level-2 linearization
+it uses is only as good as the parameters behind it. The common-trial comparison
+in Sec.~\ref{sec:l3-results} rests on one 130~s record, which is enough to
+demonstrate the divergence but not to quantify how often it occurs. Level~3's
+training corpus is broader but restricted to the slow region by construction, so
+nothing here speaks to behavior near or above the planing transition.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Conclusion}
 \label{sec:conclusion}
-\st{OUTLINE} \st{BB}
 
-\begin{outline}
-\item The spectrum collectively provides more control design guidance than any single
-  model; simple models are a persistent design tool rather than a stepping stone.
-\item What the full dataset will allow.
-\item Future work: margin-based sufficiency as a formal criterion across the
-  spectrum, replacing expert judgment with a computable bound.
-\item Release the dataset and analysis notebooks.
-\end{outline}
+We have presented a three-level model spectrum methodology for small underactuated
+USVs, identified from field trials and evaluated on common data. The central
+finding is that the spectrum collectively provides more control design guidance
+than any single model. Simple models are a persistent design tool rather than a
+stepping stone to be discarded once a better fit is available.
 
-% ─────────────────────────────────────────────────────────────────────────────
-\section*{Open Decisions for the Team}
+The margin-based sufficiency test converts Skelton's qualitative criterion into a
+computed interval for this vehicle class. For the surge channel it returns
+$[0.35, 1.28]$~m/s, bounded below by robust stability and above by loss of
+closed-loop bandwidth, and it reports that the same test is satisfied everywhere
+on the yaw channel, where the added Level-2 structure is inert.
 
-\begin{outline}
-\item Page budget. The venue allows a short paper; the material currently exceeds it.
-  Candidate cuts are recorded per reference in the notes.
-\item Whether the economics argument, that required fidelity is set by the ratio of
-  hardware-test cost to simulation-test cost, is supportable here or should be flagged
-  as future work.
-\item Whether Diagnostic~4 appears in full or in its minimum viable form, with the
-  full treatment deferred.
-\item Whether Sec.~\ref{sec:intro} keeps the sufficiency argument or yields it to a
-  standalone section.
-\end{outline}
+Future work runs in three directions. The first is data: multiple trials spanning
+the full throttle range and dedicated rudder sweeps at fixed speeds, which is what
+resolves the speed-dependent rudder gain that Diagnostic~1 could not settle. The
+second is a stronger basis for cross-level comparison. The present common trial is
+a single 130~s record, and a larger multi-trial common evaluation set would let
+the Level-3 divergence be quantified rather than demonstrated. Related to this, the
+sensitivity of each level to the quantity of training data is unstudied here and
+deserves direct treatment, particularly across displacement, semi-planing and
+planing regimes, where the amount of data needed to identify a usable model may
+differ substantially by regime. The third is to treat the robustness margin as a
+formal sufficiency criterion across the whole spectrum, computing for each design
+decision the model level at which further fidelity is provably inert. That would
+replace the expert judgment identified in Sec.~\ref{sec:related} with a computable
+bound and it generalizes past this vehicle class.
 
-% ─────────────────────────────────────────────────────────────────────────────
-\nocite{*}
+The dataset and analysis notebooks will be released.
+
 \bibliographystyle{IEEEtran}
 \bibliography{references}
 

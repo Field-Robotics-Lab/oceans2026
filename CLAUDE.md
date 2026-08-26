@@ -16,9 +16,11 @@ useful," balances interpretability against fidelity:
 | 2 | `nonlinear_ss_model.ipynb` | Nonlinear state-space (quadratic drag) | ✅ Done |
 | 3 | `blackbox_model.ipynb` | NARX MLP (black-box) | ✅ Done |
 
-**Current status:** Prototype complete. Next task is writing the conference abstract
-for early-decision submission. Full paper follows after several months of additional
-data collection.
+**Current status:** Full paper drafted in `paper/paper.tex` (8 pages, builds clean).
+The `traditional-models` and `vogt_dev` branches were merged into `main` on 2026-08-25;
+`traditional-models` was identical to `main` and `vogt_dev` fast-forwarded, so no
+content was reconciled at merge time. Remaining blocker for submission is the vehicle
+specification, marked with `\needsdata{}` in Sec. IV and rendered in red.
 
 ---
 
@@ -68,11 +70,33 @@ Execute with `jupyter nbconvert --to notebook --execute <nb>.ipynb --output <nb>
 - `dr/dt = 1.474·δ − 1.912·r`     — R² = 0.820
 - `d2` (drag) identified from coasting-only segments; `k_T` from powered segments
 
-**Level 3 — NARX MLP** (3 lags, 20-neuron hidden layer, trained on first 100 s)
-- One-step prediction: speed R² = 0.927, yaw R² = 0.876
-- Closed-loop simulation: speed R² = 0.050, yaw R² = 0.822
-- Key finding: simulation diverges for surge — structured models outperform
-  the black-box with limited data because physical constraints prevent drift
+**Level 3 — NARX MLP** — the numbers below are the ones the paper reports.
+Architecture: fixed-tap residual NARX, 19 lagged inputs, one 64-neuron tanh hidden
+layer, two state-increment outputs. Trained on 65 source logs / 44,133 samples,
+grouped by source log (37 train, 28 validation).
+
+- Common 130 s trial (the cross-level comparison): one-step speed R² = 0.998,
+  yaw R² = 0.989; recursive speed R² = **−1.988**, yaw R² = 0.259
+- Slow-region validation set (30 segments, 28 held-out logs): one-step speed
+  R² = 0.998, yaw R² = 0.991; recursive speed R² = 0.836, yaw R² = 0.768
+- Key finding: recursive simulation diverges for surge while Levels 1 and 2 track,
+  so physical structure is essential regularization at this data scale
+
+⚠️ **`blackbox_model.ipynb` is STALE and does not reproduce these numbers.** It still
+contains the earlier 3-lag / 20-neuron ReLU model trained on the single 130 s trial
+(one-step 0.927/0.876, recursive 0.050/0.822). The code and logs behind the published
+Level-3 results are not in this repository. Reconcile before the full paper.
+
+**Diagnostic 4 — margin-based sufficiency** (`diagnostic4_margin.py`)
+- The Level-1 surge model supports the control design only over **[0.35, 1.28] m/s**,
+  under half the 0–2.9 m/s tested envelope
+- Lower bound is robust stability, closed form `v_lo = kT/(4·d2·K1)`, independent of
+  the design knob λ. Below it the quadratic-drag linearization is singular
+- Upper bound is loss of closed-loop bandwidth (50% of design intent). Robust
+  stability never fails at high speed: drag is stabilizing, so the Level-1 design
+  goes sluggish rather than unstable. This contradicts the expectation recorded in
+  `classicalmodelling_notes.tex`
+- Yaw: ‖ℓT‖∞ = 0.034 across the envelope, so Level 2 changes nothing for yaw control
 
 **Diagnostic findings** (in `first_order_models.ipynb`, final sections):
 - Drag is purely quadratic (D1 ≈ 0, D2 = 0.438) — confirms level-2 structure
@@ -98,19 +122,40 @@ sudo apt-get install -y python3-scipy python3-pandas python3-matplotlib \
      python3-sklearn jupyter-notebook jupyter-nbconvert
 ```
 
+**Note:** a user-local numpy 2.2.6 in `~/.local/lib/python3.10/site-packages`
+shadows the system numpy 1.21.5 that the system matplotlib was built against, so
+plotting fails with `_ARRAY_API not found`. Run with `PYTHONNOUSERSITE=1` to use the
+system stack:
+
+```bash
+PYTHONNOUSERSITE=1 python3 diagnostic4_margin.py
+```
+
 ---
+
+## Known inconsistency
+
+`paper/abstract.tex` is the already-submitted early-decision abstract. It quotes the
+slow-region validation numbers (recursive 0.836/0.768) while claiming surge
+divergence, which those numbers do not show. The paper now headlines the common-trial
+numbers instead. Left as-is because the abstract is already submitted, but a reviewer
+holding both documents may notice.
 
 ## What to do next
 
-1. **Write the abstract** — early-decision submission for IEEE OCEANS 2026.
-   The narrative is the three-level model hierarchy, the Box quote framing,
-   and the prototype results demonstrating the workflow.
+1. **Fill the vehicle specifications** — the four `\needsdata{}` placeholders in
+   Sec. IV of `paper.tex`. Nothing containing one should be submitted.
 
-2. **Collect more data** — wider throttle range, multiple speed levels, dedicated
+2. **Regenerate the Level-3 figures at IEEE size.** `figures/preview/*` are
+   web-styled: baked-in titles duplicate the captions, and in
+   `combined_three_level_preview.pdf` the "Yaw-rate recursive simulation" heading
+   overlaps the panel above it and the Level-3 R² legend label is clipped.
+
+3. **Collect more data** — wider throttle range, multiple speed levels, dedicated
    rudder sweeps at fixed speeds (needed to resolve speed-dependent rudder gain).
 
 3. **Iterate models** with richer data:
    - Level 2: add speed-dependent rudder term once data supports it
    - Level 3: explore deeper MLP or LSTM; larger lag window; cross-validation
 
-4. **Write the full paper.**
+4. **Write the full paper.** The current draft is the conference version.
