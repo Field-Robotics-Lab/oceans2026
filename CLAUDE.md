@@ -121,6 +121,11 @@ the 11-log final test "was opened and must not be described as untouched." The
 checkpoint was manually frozen after broader evaluation, not chosen by the tuning rule.
 The paper now says this.
 
+**No public release.** BSB decided 2026-08-26 that no notebooks, code or data ship with
+this paper, and the paper promises none. Cleanup for reproducibility is deferred until a
+collaborator actually wants to extend the work. Do not spend time tidying artifacts for
+publication, and do not reintroduce a release claim into the paper.
+
 ⚠️ **`blackbox_model.ipynb` is still STALE** — the earlier 3-lag / 20-neuron ReLU model
 (one-step 0.927/0.876, recursive 0.050/0.822). Superseded by `narx/`.
 
