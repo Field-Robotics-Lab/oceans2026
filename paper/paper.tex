@@ -51,7 +51,7 @@ Using the most detailed, highest fidelity, model available is not a safe default
 
 Our scope is the single thruster plus rudder vessel with field-identified parameters. Underactuated rudder steering is the interesting case, because control authority is an explicit function of forward speed, so the steering and speed channels cannot be treated as independent design problems. 
 
-We identify three model levels from common field data, compare them with cross-model diagnostics, and give a margin-based test that reports the speed range over which added fidelity stops changing the loop design. The models buy loop structure, verification in simulation, relative comparison of candidate variants and a rehearsed tuning procedure. They do not buy gains that transfer without field tuning, and we say so plainly rather than let a reader infer otherwise.
+We identify three model levels from common field data, compare them with cross-model diagnostics, and give a margin-based test that reports the speed range over which added fidelity stops changing the loop design. The deliverable is a procedure rather than a model: the diagnostics say which dynamics are present, and the margin test says which of them reach the compensator. Prior identification studies for this vehicle class compare candidate structures and then select one, after which the rest stop contributing; we keep the set and report what each one adds. The models buy loop structure, verification in simulation, relative comparison of candidate variants and a rehearsed tuning procedure. They do not buy gains that transfer without field tuning, and we say so plainly rather than let a reader infer otherwise.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Closely Related Work}
@@ -94,6 +94,12 @@ Identification is two-phase, and the phasing is what makes it work. Fitting \eqr
 Level~3 is a fixed-tap residual NARX multilayer perceptron with 19 lagged inputs, one hidden layer of 64 tanh units and two outputs which are state increments rather than absolute states. State history extends 0.5~s into the past, throttle history 2~s and rudder history 1~s. The lag structure is a project-specific implementation choice consistent with delayed-input NARX models~\cite{lin1997delay}. Being multi-input multi-output, the model is free to discover the surge-yaw coupling absent in Levels~1 and~2.
 
 Level~3 is a compact black-box reference point in the comparison and no claim is made that this architecture is optimal. Its role as an exemplar is to bound the benefit of added complexity at the available data scale. Evaluation reports one-step prediction and recursive simulation separately, following the distinction drawn in Sec.~\ref{sec:related}.
+
+\subsection{Evaluation Protocol}
+
+Two scores are reported throughout and they are not interchangeable. One-step prediction advances the model a single sample from measured state history, so every prediction begins from the truth. Recursive simulation initializes once from measured history, then feeds the model's own output back as its state while replaying the throttle and rudder actually recorded, and runs to the end of the segment without further correction. Level~3 initializes from 2~s of measured history, the span of its longest input tap; the structured levels need one sample. No controller is present in either case. The commands are those the operator or autopilot issued during the trial, replayed open loop, so recursive simulation asks whether the model can stand in for the vehicle, not how a control loop behaves.
+
+Fit is reported per channel as $R^2 = 1 - \sum_k (y_k - \hat y_k)^2 / \sum_k (y_k - \bar y)^2$ against the measured signal, so zero is the score of predicting the channel mean and negative values are worse than that. Levels~1 and~2 are scored in-sample on the trial they were identified from, and the Level-3 figures state which partition each uses, since the two are not comparable on equal terms.
 
 \subsection{Cross-Model Diagnostics}
 

@@ -1,0 +1,49 @@
+Reviewer 1 of OCEANS 2026 submission 120
+
+Comments to the author
+======================
+
+The abstract addresses a relevant and important problem for
+marine control systems: identifying dynamic models of small
+underactuated USVs from limited field data for subsequent
+model-based control and observer design. The proposed
+comparison across interpretable first-order models,
+structured nonlinear models, and black-box NARX models is
+potentially useful, especially in the context of balancing
+control-oriented simplicity with predictive accuracy.
+
+However, the contribution is not yet clearly formulated. In
+particular:
+- The abstract states that the models are used
+“collectively,” but the actual methodology for combining or
+comparing them is not explained.
+- It is unclear what decision process connects the three
+model levels to controller or observer design, and whether
+the output is intended to be a modeling workflow, a
+diagnostic tool, or a specific control-oriented
+model-selection method.
+
+The evaluation also needs clarification. In particular:
+- The reported	values should be explicitly defined,
+including whether they are computed on training or
+validation data, and whether they correspond to one-step
+prediction or free-run simulation.
+- The statement that the NARX model achieves high one-step
+prediction accuracy but diverges in closed-loop simulation
+is potentially interesting, but the closed-loop setup,
+controller, simulation horizon, and mechanism of divergence
+are not described. Without this information, it is
+difficult to understand the meaning of the result.
+
+The abstract also lacks any reference to literature
+pointing to Nomoto-style models, USV system identification,
+control-oriented modeling, and nonlinear/black-box system
+identification. The lack of literature makes difficult to
+understand the novelty relative to prior USV identification
+studies is not clear. This should also be discussed in the
+introduction.
+
+Overall, the topic is relevant and the preliminary results
+are promising, but the abstract lacks sufficient
+methodological detail, literature context, and clarity of
+contribution.
