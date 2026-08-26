@@ -115,14 +115,18 @@ Level-3 results are not in this repository. Reconcile before the full paper.
   under half the 0–2.9 m/s tested envelope
 - Lower bound is robust stability, closed form `v_lo = kT/(4·d2·K1)`, independent of
   the design knob λ. Below it the quadratic-drag linearization is singular
-- Upper bound is loss of closed-loop bandwidth (50% of design intent). Robust
+- Upper bound is loss of closed-loop bandwidth. The 50% criterion is a **convention,
+  not a result**: 70% gives 1.03 m/s, 30% gives 1.91 m/s. Only the lower bound is analytic.
+- Upper bound detail (50% of design intent): Robust
   stability never fails at high speed: drag is stabilizing, so the Level-1 design
   goes sluggish rather than unstable. This contradicts the expectation recorded in
   `classicalmodelling_notes.tex`
 - Yaw: ‖ℓT‖∞ = 0.034 across the envelope, so Level 2 changes nothing for yaw control
 
 **Diagnostic findings** (in `first_order_models.ipynb`, final sections):
-- Drag is purely quadratic (D1 ≈ 0, D2 = 0.438) — confirms level-2 structure
+- Drag is purely quadratic (D1 = −0.015, **D2 = 0.448**) — confirms level-2 structure.
+  Note 0.448 is the *diagnostic's* coasting fit; the *Level-2 two-phase* value is 0.4377
+  (→ 0.438). These are two different fits and were conflated in an earlier draft.
 - Speed-dependent rudder gain (K_r · v) not supported by this dataset
 - Rudder-induced surge drag negligible (r = −0.08)
 
@@ -155,6 +159,33 @@ PYTHONNOUSERSITE=1 python3 diagnostic4_margin.py
 ```
 
 ---
+
+## Where this stopped (2026-08-25)
+
+Paper is submittable at 8 pages. Work halted on the **Level-3 reproducibility blocker**,
+not on the writing.
+
+A reviewer pass found the cross-level comparison was confounded: neither
+`first_order_models.ipynb` nor `nonlinear_ss_model.ipynb` contains a train/test split,
+so Levels 1 and 2 are fitted and scored on the same 1,300 samples while Level 3 is
+scored on a trial it was not fitted to. The paper now states this and **withdraws** the
+claim that physical structure beats data volume. It rests instead on the within-model
+claim, which the protocol difference cannot touch: one-step accuracy is a poor guide to
+simulation accuracy (0.998 → −1.988 on the common trial, 0.998 → 0.836 on Level 3's
+held-out set).
+
+Blocking an extension:
+1. **Level-3 code, weights and the 65-log corpus are not in this repo.** Every Level-3
+   number is unverifiable, including the one now carrying the paper's central claim.
+2. **Unknown whether the common 130 s trial was inside Level 3's training partition.**
+   If it was, the recursive failure is on training data, which is a stronger result and
+   worth one sentence in the paper. Carson can answer this.
+3. **No uncertainty quantification anywhere.** Single trial, no intervals.
+   `nonlinear_ss_model.ipynb` warns `kT` and `d2` extrapolate beyond the observed
+   envelope; the paper does not repeat that warning.
+4. **Fig. 4 is CV's preview render** — web-styled, overlapping subtitle, clipped R²
+   legend label. It carries the headline claim. Regenerating needs the Level-3
+   predictions, i.e. blocker 1.
 
 ## Known inconsistency
 
