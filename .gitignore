@@ -232,3 +232,8 @@ __marimo__/
 
 # Editor
 .vscode/
+
+# Raw ArduPilot logs: large binaries stay on disk, processed CSVs are tracked
+data/**/*.BIN
+data/**/*.BIN.mat
+data/**/LOGS/
