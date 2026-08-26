@@ -28,9 +28,8 @@ THROTTLES = np.round(np.arange(0.04, 0.42, 0.02), 3)
 SETTLE_S = 60.0
 
 CHECKPOINTS = {
-    "paper": "narx/checkpoints/final_8202026.pt",
-    "active-only retrain": "narx/checkpoints/active_h100.pt",
-    "long-horizon retrain": "narx/checkpoints/long_h400.pt",
+    "uncurated": "narx/checkpoints/final_8202026.pt",
+    "curated": "narx/checkpoints/curated.pt",
 }
 
 

@@ -19,7 +19,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-TRACES = "narx/results/original_trial_level3_traces.csv"
+TRACES = "narx/results/curated_trial_traces.csv"
 DT = 0.1
 
 # Published Level-1 transfer functions and Level-2 parameters.
@@ -116,7 +116,7 @@ ax[0].plot(t, p3v, color=VERM, lw=1.1, label=f"Level 3  ($R^2$={fits['3v']:.3f})
 ax[0].set_ylabel("surge speed (m/s)")
 ax[0].legend(ncol=4, loc="upper left", frameon=False, handlelength=2.4,
              borderaxespad=0.2, columnspacing=1.4)
-ax[0].set_ylim(-0.75, 4.0)
+ax[0].set_ylim(-0.35, 3.6)
 
 ax[1].plot(t, mr, color=BLACK, lw=1.1, label="measured", zorder=5)
 ax[1].plot(t, p1r, color=BLUE, lw=1.0, ls=(0, (4, 2)), label=f"Level 1  ($R^2$={fits['1r']:.3f})")
@@ -125,7 +125,7 @@ ax[1].plot(t, p3r, color=VERM, lw=1.1, label=f"Level 3  ($R^2$={fits['3r']:.3f})
 ax[1].set_ylabel("yaw rate (rad/s)")
 ax[1].legend(ncol=4, loc="upper left", frameon=False, handlelength=2.4,
              borderaxespad=0.2, columnspacing=1.4)
-ax[1].set_ylim(-1.05, 1.25)
+ax[1].set_ylim(-1.05, 1.15)
 
 ax[2].plot(t, u, color=MUTED, lw=0.9, label="throttle")
 ax[2].plot(t, dl, color="#8B5FA8", lw=0.9, ls=(0, (3, 2)), label="rudder")
