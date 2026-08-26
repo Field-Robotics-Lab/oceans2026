@@ -203,15 +203,27 @@ On the full slow-region validation set of 30 segments from 28 held-out logs, the
 
 On the common trial Level~3 reaches one-step $R^2$ of 0.998 in speed and 0.989 in yaw rate. Under recursive simulation on that same trial it falls to $-1.988$ in speed and $0.259$ in yaw rate, a negative $R^2$ meaning the model predicts worse than the mean of the measured signal. Fig.~\ref{fig:combined} shows the surge trajectory drifting below zero and staying there for tens of seconds.
 
-The result we claim is the gap between one-step and recursive prediction, not the ranking of the three levels. That gap is measured within a single model on identical data, so it is not affected by how the models were fitted. One-step prediction reads the measured state at every sample, so a model can score 0.998 while having learned little more than that the state changes slowly. Recursive simulation removes that support and the per-step increment errors accumulate. The same gap appears on Level~3's own held-out validation set, where speed $R^2$ falls from 0.998 to 0.836, so it is a property of the model rather than of one trial.
+The gap between one-step and recursive prediction is measured within a single model on identical data, so it is unaffected by how the models were fitted, and it is large. But the mechanism is specific enough to name, and naming it changes what the comparison means.
 
-The apparent ranking in Fig.~\ref{fig:combined} will not carry that weight. Levels~1 and~2 are scored on the trial they were identified from, while Level~3 is scored on a trial it was not fitted to, so part of the separation is the ordinary in-sample advantage rather than an effect of model structure. We therefore make no quantitative claim that structure outperforms the black box. What the figure does establish is that the structured models stay bounded while the black box does not, which follows from the drag term rather than from the fit.
+A long recursive rollout is governed by the model's equilibrium: hold the throttle constant and whatever speed the model settles to is what the rollout reports. Driving each level from rest at constant throttle for 60~s gives Fig.~\ref{fig:steady}. Levels~1 and~2 have an equilibrium by construction, $v=K_v u$ and $v=\sqrt{k_T u/d_2}$ respectively, and both track the measured steady speeds, with a root-mean-square error against measurement of 0.33~m/s for Level~1 and 0.18~m/s for Level~2. The NARX does not. Over the throttle band where the trial spends most of its time it settles \emph{below zero}, returning $-0.07$~m/s at a throttle of 0.20 where the vehicle measurably does 1.22~m/s, and its steady-state map is not monotone in throttle, which no physical vessel can be. Its error against measurement is 0.98~m/s.
+
+The cause is the training data rather than the architecture. The corpus is 16.4\% powered and holds the throttle steady for a 90th-percentile 1.6~s against a vehicle time constant of two to four seconds, so it almost never reaches equilibrium; the comparison trial is 69.8\% powered and holds throttle for ten seconds at a time. The model was fitted almost entirely to transients and was never shown what steady state looks like, so it had no basis on which to learn one. Two retrains confirm that training alone does not repair this: extending the rollout horizons from 5~s to 40~s, and refitting on powered-only sub-segments, both leave the steady-state map non-monotone and neither improves the trial.
+
+This bounds what Fig.~\ref{fig:combined} can be said to show. It is not a comparison of structured against black-box modeling, because it places two models that possess an equilibrium against one that does not. We make no claim from it about model class. What it does show is narrower and, for a practitioner, more useful: a model can be the best one-step predictor available and still be unusable in the closed loop, and reporting one-step accuracy alone will not reveal that.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figures/diagnostic4_margin.pdf}
   \caption{Diagnostic~4. (a) Robust stability of the Level-1 compensator against the Level-2 linearization binds at low speed, where the quadratic-drag linearization is singular. (b) Achieved closed-loop bandwidth binds at high speed. The shaded band is the interval over which the Level-1 model supports the design. The yaw channel (a, dotted) never approaches the limit, so Level~2 changes nothing for yaw control.}
   \label{fig:diagnostic4}
+\end{figure}
+
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/steady_state_gain.pdf}
+  \caption{Steady-state response of each level, obtained by driving the model from rest at constant throttle for 60~s and recording where it settles, against speeds measured on the trial. Levels~1 and~2 have an equilibrium by construction and track the measurements. The NARX settles below zero across the band the trial occupies and is not monotone in throttle.}
+  \label{fig:steady}
 \end{figure}
 
 \subsection{Cross-Model Diagnostic Summary}
