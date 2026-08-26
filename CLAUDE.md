@@ -28,7 +28,7 @@ site and the ArduRover parameter set. No `\needsdata{}` placeholders remain.
 
 | Item | Value | Source |
 |------|-------|--------|
-| Hull | Pro Boat Blackjack 42, RC catamaran, 1.07 m (42 in) | Horizon Hobby PRB08043 |
+| Hull | Pro Boat Blackjack 42, RC monohull, 1.07 m (42 in) | BSB, direct observation |
 | Mass | ~5 kg as instrumented | ME2801 autopilot page |
 | Propulsion | Single four-pole water-cooled brushless motor, one propeller, 160 A ESC, 8S LiPo | product listing |
 | Steering | Single rudder, one digital servo | product listing |
@@ -37,9 +37,11 @@ site and the ArduRover parameter set. No `\needsdata{}` placeholders remain.
 | Cruise speed | `CRUISE_SPEED` = 5 m/s (trial covers only 0–2.9 m/s) | `2026_05_29_proto.param` |
 | Actuator config | `SERVO1_FUNCTION=26` (steering), `SERVO3_FUNCTION=70` (throttle), all others 0 | `2026_05_29_proto.param` |
 
-The single-motor / single-rudder configuration is confirmed by the parameter file,
-which matters because a catamaran hull would otherwise suggest differential thrust.
-Beam is not published on the product page and is not stated in the paper.
+The single-motor / single-rudder configuration is confirmed by the parameter file.
+
+⚠️ The Horizon Hobby listing calls this product a "Brushless Catamaran." BSB confirms
+the actual hull is a **monohull** (2026-08-25); the spec sheet is wrong. The paper says
+monohull. Beam is not published and is not stated in the paper.
 
 Reference material lives at
 `~/WorkingCopies/me2801/introduction-to-feedback-control/site/` (the `autopilot/`
