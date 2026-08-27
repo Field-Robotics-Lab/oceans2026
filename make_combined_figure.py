@@ -17,6 +17,9 @@ import csv
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
+# IEEE submission systems reject Type 3 fonts; 42 emits TrueType.
+matplotlib.rcParams["pdf.fonttype"] = 42
+matplotlib.rcParams["ps.fonttype"] = 42
 import matplotlib.pyplot as plt
 
 TRACES = "narx/results/curated_trial_traces.csv"
