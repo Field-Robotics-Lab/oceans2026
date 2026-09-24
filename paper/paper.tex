@@ -69,7 +69,17 @@ The time constant $\tau$ is the open-loop pole the controller works against, so 
 \end{align}
 Identification is two-phase. Fitting \eqref{eq:l2surge} jointly for $k_T$ and $d_2$ is poorly conditioned, because thrust and drag are large and nearly cancelling during steady runs, so the data constrains their difference far better than either term. Instead $d_2$ is estimated from coasting segments where $u=0$ and \eqref{eq:l2surge} reduces to $\dot v=-d_2v|v|$, then $k_T$ follows from the powered segments. The yaw channel keeps a constant $k_\delta$, a local approximation rather than a physical claim: rudder force grows with the square of flow speed, so the value identified holds near the speed at which the rudder steps were flown.
 
-\emph{Level~3} is a fixed-tap residual NARX multilayer perceptron with 19 lagged inputs, one hidden layer of 64 tanh units and two outputs which are state increments rather than absolute states. State history extends 0.5~s into the past, throttle history 2~s and rudder history 1~s, a project-specific choice consistent with delayed-input NARX models~\cite{lin1997delay}. Being multi-input multi-output, it is free to discover the surge-yaw coupling absent in Levels~1 and~2. Its role is to bound the benefit of added complexity at the available data scale.
+\emph{Level~3} keeps the input-output form of Level~1 and replaces the linear map with a learned one. Writing the state as $x(k)=[\,v(k)\ \ r(k)\,]^{\top}$ and gathering the lagged signals into a regressor,
+\begin{equation}
+\varphi(k)=\bigl[\,x(k{-}i)_{i\in\mathcal{S}},\ u(k{-}j)_{j\in\mathcal{T}},\ \delta(k{-}l)_{l\in\mathcal{R}}\,\bigr]^{\top},
+\label{eq:l3reg}
+\end{equation}
+with $\mathcal{S}=\{0,1,2,5\}$, $\mathcal{T}=\{0,1,2,5,10,20\}$ and $\mathcal{R}=\{0,1,2,5,10\}$ so that $\varphi(k)\in\mathbb{R}^{19}$, the model advances the state by a learned increment,
+\begin{align}
+x(k{+}1) &= x(k) + f_\theta\bigl(\varphi(k)\bigr), \label{eq:l3update}\\
+f_\theta(\varphi) &= W_2\tanh\!\bigl(W_1\varphi + b_1\bigr) + b_2, \label{eq:l3net}
+\end{align}
+with $W_1\in\mathbb{R}^{64\times19}$ and $W_2\in\mathbb{R}^{2\times64}$, giving 1{,}410 parameters. Regressor and increment are standardized by training-set statistics. At 10~Hz the taps reach 0.5~s of state history, 2~s of throttle and 1~s of rudder, roughly one time constant of each channel, and the sparse spacing follows the delayed-input NARX tradition~\cite{lin1997delay}. Being multi-input multi-output, \eqref{eq:l3net} is free to discover the surge-yaw coupling absent in Levels~1 and~2. Its role is to bound the benefit of added complexity at the available data scale.
 
 Every fit reported here is by simulation: the model is initialized once from measured history and thereafter runs on its own output, replaying the throttle and rudder actually recorded, to the end of the segment without correction. Level~3 initializes from 2~s of measured history, the span of its longest input tap. No controller is active during the trials, so we assess whether the model can stand in for the vessel. Fit is reported per channel as $R^2 = 1-\sum_k(y_k-\hat y_k)^2/\sum_k(y_k-\bar y)^2$.
 
