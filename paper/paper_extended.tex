@@ -1,0 +1,234 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{xcolor}
+
+\title{From Interpretable to Black-Box: Dynamic Model Identification
+for Small USV Control Design\\[2pt]
+\large\normalfont Extended version}
+
+\author{
+  \IEEEauthorblockN{Brian S. Bingham and Carson Vogt}
+  \IEEEauthorblockA{
+    Department of Mechanical and Aerospace Engineering\\
+    Naval Postgraduate School\\
+    Monterey, CA, USA\\
+    bbingham@nps.edu, crvogt@nps.edu
+  }
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Design of the low-level speed and heading loops of a small uncrewed surface vehicle (USV) is improved by a dynamic model of the vessel, and it is rarely clear how much model fidelity is sufficient. For vessels under seven meters with a single thruster and rudder, tow-tank testing is impractical and parameters must be identified from limited field trials. We treat sufficiency as a property of a stated design job, taking that job to be the proportional-integral plus feedforward stabilization loops of a  autopilot, and identify three model levels against that target: first-order linear SISO transfer functions, a nonlinear state-space form with quadratic drag, and a NARX multilayer perceptron. First-order models reach $R^2=0.93$ in surge and $R^2=0.83$ in yaw rate, enough to fix a PI+FF compensator design. The robustness margin of a compensator is a budget for model error, and the Level-1 to Level-2 discrepancy measured against that budget bounds the range over which the simpler model suffices. A speed controller designed from it behaves as intended only between 0.35 and 1.28 m/s: below that band the discrepancy exceeds the stability margin, and above it the loop stays stable but loses more than half its intended closed-loop bandwidth. The NARX model simulates the comparison trial at $R^2=0.47$ in speed and $0.85$ in yaw rate, settling at 1.30~m/s where the vessel does 1.22, but it plateaus near 1.3~m/s beyond the speeds its corpus covers. 
+\end{abstract}
+
+\begin{IEEEkeywords}
+uncrewed surface vehicle, system identification, model spectrum, control-oriented
+modeling, robustness margin, underactuated vessels
+\end{IEEEkeywords}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Introduction}
+\label{sec:intro}
+
+Small uncrewed surface vehicles, here vessels under seven meters driven by a single thruster and rudder, are increasingly deployed for survey, inspection and autonomy research. Every such mission rests on a working low-level controller: a speed loop on the throttle and a yaw-rate loop on the rudder, each holding a setpoint while a guidance layer above does the navigating. In autopilots such as ArduPilot these are proportional-integral loops with an added feedforward term. Designing, simulating and tuning that pair of loops is the task this paper addresses, and the purpose of the data-driven models assessed in this paper.  
+
+The system identification literature offers a wide variety of model abstractions, from two-parameter response models to maneuvering polynomials carrying dozens of hydrodynamic coefficients. Because we assume a fixed compensator structure, we can assess the model value by assessing does a change in plant model complexity move the controller gains, the achievable closed-loop bandwidth or the tuning procedure of that loop? A change in model that does not affect a change in any of these three is inert however much better it fits, i.e., it's fidelity. Taking the most detailed model available is not a safe default either, since added terms degrade the conditioning of the fit~\cite{alexandersson2022system,suarez2026regularized} and each one needs excitation to identify.
+
+The nearest prior attempt to weigh that trade illustrates the challenge. Sonnenburg and Woolsey~\cite{sonnenburg2013modeling} evaluate a cost function on held-out maneuvers, tabulate it per model and per regime, then select by judgment, discarding the best-scoring model because two extra parameters are not worth the slight edge. The cost function scores the benefit of added parameters and no comparable metric exists for the cost. Skelton put the criterion in control terms, that model errors need not be small but only appropriate for the control design~\cite{skelton1989model}, and it has stood since without becoming computable. 
+
+Our scope is the single thruster plus rudder vessel with field-identified parameters. Underactuated rudder steering is compelling, because control authority is an explicit function of forward speed, so the steering and speed channels cannot be treated as independent design problems. We identify three model levels from common field data, compare them with cross-model diagnostics, and give a margin-based test reporting the speed range over which added fidelity stops changing the loop design. The deliverable is a procedure rather than a model. Prior studies for this vehicle class compare candidate structures and then select one, after which the rest stop contributing; we keep the set. The models buy loop structure, verification in simulation, relative comparison of variants and a rehearsed tuning procedure. They do not buy gains that transfer without field tuning, and we say so plainly.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Closely Related Work}
+\label{sec:related}
+
+The minimal control-oriented description of a steered vessel is Nomoto's first-order steering model~\cite{nomoto1957steering}, still the standard starting point in the modern formulation~\cite{fossen2011handbook}, with the identification tradition founded by {\AA}str{\"o}m and K{\"a}llstr{\"o}m~\cite{astrom1976identification}. Physics-based maneuvering models such as Abkowitz's~\cite{abkowitz1964lectures} include coefficients with physical meaning but resist identification from field data: over the maneuvers a small vessel can realistically perform the regressors are nearly collinear~\cite{suarez2026regularized,alexandersson2022system,xu2025review}. For small craft the closest prior work is Sonnenburg and Woolsey~\cite{sonnenburg2013modeling,sonnenburg2010control}, with related efforts spanning autonomous surface craft and small workboats~\cite{eriksen2017modeling,muske2008identification,wirtensohn2013modelling,morel2025practical,sarda2016nmpc}.
+
+Data-driven and grey-box marine models span recurrent architectures~\cite{woo2018dynamic}, physics-informed networks~\cite{xu2022pinn} and gradient-boosted ensembles~\cite{zhang2024gbm}, and our Level~3 follows the neural identification literature~\cite{narendra1990identification} and its delayed-input variants~\cite{lin1997delay}. Evaluation for control design has to be by simulation, in which the model is initialized once and thereafter runs on its own output. 
+Two gaps motivate what follows. First, prior studies settle sufficiency by choosing a single model and discarding the others, so nothing is learned from the comparison itself, and second the small rudder-steered vessel is underrepresented beside the differential-thrust platforms that dominate the USV literature.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Model Spectrum Methodology}
+\label{sec:methodology}
+
+Each level is judged by what it contributes to the PI-plus-feedforward loop of Sec.~\ref{sec:intro} rather than by goodness of fit. 
+
+\emph{Level~1} treats surge and yaw as decoupled first-order channels, $G_v(s)=K_v/(\tau_v s+1)$ and $G_r(s)=K_r/(\tau_r s+1)$, mapping normalized throttle to speed and normalized rudder to yaw rate. Both are identified as discrete autoregressive models with exogenous input, ARX($n_a,n_b$) with $n_a=n_b=1$, so that $y(k)=a_1y(k-1)+b_1u(k-1)$, fitted by least squares on the 10~Hz record and converted to continuous time. 
+The time constant $\tau$ is the open-loop pole the controller works against, so it sets the scale of achievable closed-loop bandwidth, while $K$ sets the loop gain. A PI structure follows, with internal model control tuning fixing its gains as $k_p=\tau/(K\lambda)$ and $k_i=1/(K\lambda)$ for a chosen closed-loop time constant $\lambda$.
+
+\emph{Level~2} keeps the decoupled structure but replaces linear damping in surge with quadratic drag,
+\begin{align}
+\dot v &= k_T\,u - d_2\,v|v|, \label{eq:l2surge}\\
+\dot r &= k_\delta\,\delta - d_r\,r. \label{eq:l2yaw}
+\end{align}
+Identification is two-phase. Fitting \eqref{eq:l2surge} jointly for $k_T$ and $d_2$ is poorly conditioned, because thrust and drag are large and nearly cancelling during steady runs, so the data constrains their difference far better than either term. Instead $d_2$ is estimated from coasting segments where $u=0$ and \eqref{eq:l2surge} reduces to $\dot v=-d_2v|v|$, then $k_T$ follows from the powered segments. The yaw channel keeps a constant $k_\delta$, a local approximation rather than a physical claim: rudder force grows with the square of flow speed, so the value identified holds near the speed at which the rudder steps were flown.
+
+\emph{Level~3} keeps the input-output form of Level~1 and replaces the linear map with a learned one. Writing the state as $x(k)=[\,v(k)\ \ r(k)\,]^{\top}$ and gathering the lagged signals into a regressor,
+\begin{equation}
+\varphi(k)=\bigl[\,x(k{-}i)_{i\in\mathcal{S}},\ u(k{-}j)_{j\in\mathcal{T}},\ \delta(k{-}l)_{l\in\mathcal{R}}\,\bigr]^{\top},
+\label{eq:l3reg}
+\end{equation}
+with $\mathcal{S}=\{0,1,2,5\}$, $\mathcal{T}=\{0,1,2,5,10,20\}$ and $\mathcal{R}=\{0,1,2,5,10\}$ so that $\varphi(k)\in\mathbb{R}^{19}$, the model advances the state by a learned increment,
+\begin{align}
+x(k{+}1) &= x(k) + f_\theta\bigl(\varphi(k)\bigr), \label{eq:l3update}\\
+f_\theta(\varphi) &= W_2\tanh\!\bigl(W_1\varphi + b_1\bigr) + b_2, \label{eq:l3net}
+\end{align}
+with $W_1\in\mathbb{R}^{64\times19}$ and $W_2\in\mathbb{R}^{2\times64}$, giving 1{,}410 parameters. Regressor and increment are standardized by training-set statistics. At 10~Hz the taps reach 0.5~s of state history, 2~s of throttle and 1~s of rudder, roughly one time constant of each channel, and the sparse spacing follows the delayed-input NARX tradition~\cite{lin1997delay}. Being multi-input multi-output, \eqref{eq:l3net} is free to discover the surge-yaw coupling absent in Levels~1 and~2. Its role is to bound the benefit of added complexity at the available data scale.
+
+Every fit reported here is by simulation: the model is initialized once from measured history and thereafter runs on its own output, replaying the throttle and rudder actually recorded, to the end of the segment without correction. Level~3 initializes from 2~s of measured history, the span of its longest input tap. No controller is active during the trials, so we assess whether the model can stand in for the vessel. Fit is reported per channel as $R^2 = 1-\sum_k(y_k-\hat y_k)^2/\sum_k(y_k-\bar y)^2$.
+
+\subsection{Cross-Model Diagnostics}
+
+The value of the spectrum is the comparison across levels rather than the three fits individually. Held-out scoring measures prediction accuracy, which is a different property from whether the coefficients mean anything. A maneuvering model can pass a prediction test while its individual coefficients remain physically meaningless~\cite{alexandersson2022system}, and a coefficient that cannot be interpreted cannot inform a control gain. Comparison across structures targets the second property, which is the one a designer needs. 
+
+\emph{Diagnostic 1, speed-dependent rudder gain.} Replace the constant $k_\delta$ in \eqref{eq:l2yaw} with a speed-scaled $k_\delta v$ and test whether the yaw-rate fit improves. Gain scheduling is well within an autopilot's capability, so we examine if the model can predict what schedule to use. The alternative tested is partial, since Nomoto scaling gives $k_\delta\propto v^2$ with $d_r\propto v$~\cite{fossen2011handbook} while the regression scales only the input gain and only linearly.
+
+\emph{Diagnostic 2, drag nonlinearity.} The form of the surge damping is the only structural difference between Levels~1 and~2. Fit linear and quadratic damping to the coasting deceleration and compare; a dominant quadratic term calls for nonlinear feedforward on the speed loop.
+
+\emph{Diagnostic 3, rudder-induced surge drag.} The reverse coupling to Diagnostic~1, so together they test decoupling in both directions. Correlate $\delta^2$ against the surge residual of the Level-2 fit. A correlation would make every rudder command a disturbance to the speed loop.
+
+\emph{Diagnostic 4, is the added fidelity inside the robustness margin?} This assesses whether a real term changes the design. The robustness margin of a compensator is a budget for model error, so the test is whether the Level-1 to Level-2 discrepancy fits inside the margin of a controller designed from Level~1 alone. The construction has four steps.
+
+\emph{Step 1.} Design a nominal compensator from Level~1 only, in the target architecture of Sec.~\ref{sec:intro}, so that the test measures a change the deployed autopilot would experience rather than a property of some auxiliary controller. We use an internal model control PI, $C(s) = (\tau_v s + 1)/(K_v \lambda s)$, which cancels the Level-1 pole and gives a nominal loop $L = 1/(\lambda s)$ and complementary sensitivity $T(s) = 1/(\lambda s + 1)$, with $\lambda$ the intended closed-loop time constant.
+
+\emph{Step 2.} Linearize Level~2 about operating points spanning the tested envelope. For surge, $\partial(v|v|)/\partial v=2v_0$ for $v_0>0$, so \eqref{eq:l2surge} gives a speed-scheduled first-order plant
+\begin{equation}
+G_2(s,v_0)=\frac{K_2(v_0)}{\tau_2(v_0)s+1},\quad
+\tau_2=\frac{1}{2d_2v_0},\quad K_2=\frac{k_T}{2d_2v_0},
+\label{eq:lin}
+\end{equation}
+in which gain and time constant both fall as $1/v_0$. Both therefore vary by a factor of six across the tested envelope, which is the sense in which Level~1's single pair of numbers is an approximation to a family.
+
+\emph{Step 3.} Form the multiplicative model error $\ell(\omega,v_0)=|G_2(j\omega,v_0)/G_1(j\omega)-1|$ and test robust stability, $\|\ell T\|_\infty<1$. The high-frequency limit of $|G_2/G_1|$ is $k_T\tau_v/K_v$, independent of $v_0$, so the discrepancy at high frequency is a fixed property of the two fits rather than an operating-point effect.
+
+\emph{Step 4.} Report the operating range over which the test passes. The output is not a yes or no but the speeds at which Level~1 stops being sufficient, which is an actionable number for a control designer and a direct answer to ``enough for what.''
+
+Step~3 alone proves insufficient. Quadratic drag is stabilizing, so at high speed the Level-1 design becomes sluggish rather than unstable and the stability test keeps passing. We therefore add a performance criterion, comparing the achieved closed-loop bandwidth of the Level-1 compensator on $G_2(s,v_0)$ against the design intent $1/\lambda$. The pair bounds sufficiency from both sides, and because the two criteria bind at opposite ends of the envelope the result is an interval rather than a threshold.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Experimental Platform and Data}
+\label{sec:experiment}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{images/blackjack42_usv.JPG}
+  \caption{The experimental platform, a Pro Boat Blackjack 42 monohull of 1.07~m length. Thrust comes from a single propeller and steering from a single rudder, both at the stern.}
+  \label{fig:platform}
+\end{figure}
+
+The platform (Fig.~\ref{fig:platform}) is a Pro Boat Blackjack 42, a radio-controlled monohull of 1.07~m length instrumented to approximately 5~kg, single-screw with one rudder. Guidance, control and logging run on a Cube Orange + executing ArduRover 4.6.3, with ground speed from a HERE3 GNSS receiver.  Propulsion is a single four-pole water-cooled brushless motor driving one propeller through a 160~A electronic speed controller, powered by an 8S lithium-polymer pack. Commands are logged as \texttt{RCOU\_C3} and \texttt{RCOU\_C1} at 1100--1900~$\mu$s PWM and normalized to $[-1,1]$ about the 1500~$\mu$s neutral point; outputs are \texttt{GPS\_Spd} at 5~Hz and \texttt{IMU\_GyrZ} at 137~Hz. Binary autopilot logs are converted by a utility that extracts every numeric field of every message type, and all processing works from that representation. Trials are completed in manual mode, so logged commands are open-loop operator inputs.  The identification trial covers roughly the lower half of the intended speed range.
+
+Multi-rate streams are aligned to a common 10~Hz grid by linear interpolation and segmented at autopilot mode changes and quality discontinuities. Levels~1 and~2 are identified from a single step-response trial: a 130~s window from a 341~s recording, throttle 0--39\%, speed 0--2.9~m/s, 1{,}300 samples. Level~3 draws on a larger corpus of 44{,}133 samples in 70 slow-region segments from 65 source logs, where the slow-region rule excludes a segment once speed stays above 3.4~m/s for at least 1~s. Stationary records dominated the raw logs and were removed on a physical-response criterion, that the vessel demonstrably responds to its controls. Allocation is grouped by source log. Training uses 37 logs, being 40 segments and 28{,}023 rows. The remaining 28 logs, 30 segments and 16{,}110 rows are pooled for evaluation, and that pool is not a clean held-out set. It combines 8 logs used for early stopping and hyperparameter selection, 9 used to choose among candidate model families, and 11 nominally reserved as a closed test set that was opened before the paper checkpoint was fixed. The checkpoint itself was selected manually after that evaluation rather than by the pre-declared rule, so metrics on this pool are optimistic and we treat them as descriptive rather than as an unbiased estimate of generalization. The frozen model is additionally evaluated on the same 130~s trial as Levels~1 and~2. That trial is not part of the Level-3 corpus, confirmed by cross-correlating it against every corpus segment, so it is unseen by Level~3 while Levels~1 and~2 are identified from it. Its 20-sample lag history leaves 1{,}279 scored rows against 1{,}300.
+
+A further 17 records, 49 minutes and 29{,}524 samples at 10~Hz, support one check reported in Sec.~\ref{sec:diag-results}. They reach 6.0~m/s and include reverse throttle, so they cover the upper half of the configured operating range that the identification trial never enters. Seven of them already appear in the Level-3 corpus above; the remainder are excluded from it by the slow-region rule, which is precisely why they carry the speed variation the check requires.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Results}
+\label{sec:results}
+
+Least squares on the step-response trial gives $G_v(s)=6.42/(1.95s+1)$ and $G_r(s)=0.771/(0.471s+1)$, with simulation $R^2=0.930$ in surge and $0.826$ in yaw rate. The trial is short enough that withholding part of it would leave too little excitation to identify against, so fit and score both use all 1{,}300 samples, and the same holds for Level~2. 
+The surge and yaw time constants differ by a factor of four, so the two channels can be given separate loops at separate bandwidths and tuned independently.
+
+Two-phase identification gives $\dot v = 3.963\,u - 0.438\,v|v|$ and $\dot r = 1.474\,\delta - 1.912\,r$, with $R^2=0.909$ in surge and $0.820$ in yaw rate. Both values are marginally below Level~1 on this trial, which is expected, since Level~1 minimizes exactly this error on exactly this data while Level~2 takes its drag coefficient from coasting alone.
+
+\subsection{Level 3}
+\label{sec:l3-results}
+
+Level~3 simulates the common trial at $R^2=0.47$ in speed and $0.85$ in yaw rate.  The surge deficit is not spread across the trial: the 81 samples above 1.5~m/s are 6.3\% of the record and carry 49\% of the squared error, with a mean shortfall of 1.04~m/s, while below 1.5~m/s the same simulation returns $R^2=0.60$. The model is accurate over the speeds it was trained across and saturates above them. Levels~1 and~2 have an equilibrium by construction, $v=K_v u$ and $v=\sqrt{k_T u/d_2}$, and both track the measured steady speeds with root-mean-square errors of 0.33 and 0.18~m/s. 
+
+That saturation is an envelope limit rather than a defect, and Fig.~\ref{fig:steady} shows its shape. The network plateaus near 1.3~m/s for any throttle above 0.15, returning 1.24~m/s at a throttle of 0.39 where the vessel does 2.09, because the corpus is capped at 3.14~m/s and holds almost no sustained fast running. A network can only locate the speed at which acceleration vanishes if the data visited it. The structured levels do not share the limit. Their equilibrium follows from the form of the equation, so it is defined at operating points no trial ever exercised. Within the envelope the dataset covers, the network is a serviceable simulator; outside it, the structured models are the only ones that extrapolate.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/steady_state_gain_ext.pdf}
+  \caption{Steady-state response of each level, obtained by driving the model from rest at constant throttle for 60~s and recording where it settles, against speeds measured on the trial. Levels~1 and~2 have an equilibrium by construction and track the measurements. Fitted to the raw logs the network settles below zero over the band the trial occupies and is not monotone in throttle; curated, it tracks the measurements inside the corpus envelope and plateaus beyond it.}
+  \label{fig:steady}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/diagnostic4_margin.pdf}
+  \caption{Diagnostic~4. (a) Robust stability of the Level-1 compensator against the Level-2 linearization binds at low speed, where the quadratic-drag linearization is singular. (b) Achieved closed-loop bandwidth binds at high speed. The shaded band is the interval over which the Level-1 model supports the design. The yaw channel (a, dotted) never approaches the limit.}
+  \label{fig:diagnostic4}
+\end{figure}
+
+\subsection{Curating the Training Records}
+\label{sec:curation}
+
+The curation step deserves its own account, because it moved Level~3 further than any change to the training recipe did.
+
+Inspecting the corpus per source log shows the problem. One record supplies 27\% of the training rows and is 12.8 minutes of a stationary vessel: 98.7\% of its samples lie below 0.1~m/s and only 2.1\% carry any throttle. Two further logs show no speed response under sustained throttle. Roughly a third of the training data therefore asserts that throttle produces no motion, and a network fitted to it learned exactly that.
+
+The criterion is physical rather than statistical. A source log is dropped if the vessel never got under way, taken as a 95th-percentile speed below 0.5~m/s, or if it shows no speed response under sustained throttle, taken as a mean speed below 0.6~m/s given more than 20 samples above a throttle of 0.2. That removes 14 logs and 46.7\% of the training rows, and raises the fraction of active samples from 16.6\% to 29.3\%. Nothing else about the procedure changes.
+
+Fitted to the raw corpus the network returns $R^2=-1.99$ in speed and $+0.26$ in yaw rate on the common trial, settles below zero at a throttle of 0.20 where the vessel does 1.22~m/s, and has a steady-state map that is not monotone in throttle. Curated, the same architecture and seed give $+0.47$ and $+0.85$, and a settling speed of 1.30~m/s. Fig.~\ref{fig:steady} shows both.
+
+How the records are removed matters as much as which. An earlier attempt kept only the powered stretches within each segment, which raised the active fraction further but cut the training set by a factor of 4.6 and made the trial worse, returning $-3.28$. Dropping whole unresponsive logs while leaving the good segments intact preserves the continuous dynamics the model has to learn. Curation here is a judgement about which recordings describe the vehicle, not a filter applied sample by sample.
+
+\subsection{Cross-Model Diagnostic Summary}
+\label{sec:diag-results}
+
+\emph{Diagnostic 1} finds no improvement from a speed-dependent rudder gain ($\Delta R^2 = -0.03$). The trial holds forward speed nearly constant during the rudder steps, so $\delta v$ and $\delta$ are very nearly the same regressor, with a correlation of 0.99, and no fit can separate them; the partial scaling noted above is a second candidate explanation. Either way the result flags a gap in data coverage rather than absence of the effect, and rudder sweeps at separated fixed speeds are what would settle it.
+
+The supplementary records let that attribution be tested rather than asserted. Measuring the collinearity of $\delta$ and $\delta v$ on each manual-mode record and repeating the diagnostic gives Fig.~\ref{fig:diag1-excitation}. The identification trial sits at a correlation of 0.99, among the most collinear records available, and the records that separate the two terms are the ones in which the speed-scaled gain improves the fit. The clearest case holds rudder from 0.46 to 4.48~m/s and returns $\Delta R^2 = +0.13$. We do not claim the effect is thereby established: averaged over the manual-mode records the improvement is only $+0.02$, a single record carries most of it, and each fit is in-sample. What the comparison does establish is that the diagnostic's power is governed by how far speed varies while the rudder is deflected, which specifies what the rudder sweeps have to achieve: not more data, but rudder applied across separated speeds.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/diagnostic1_excitation.pdf}
+  \caption{Diagnostic~1 repeated on each manual-mode record of the supplementary set. The horizontal axis is the correlation between $\delta$ and $\delta v$ over the samples with rudder applied, so records to the right cannot separate a constant gain from a speed-scaled one. Marker area is record length and colour is the highest speed reached under rudder. The cross marks the identification trial used throughout the paper.}
+  \label{fig:diag1-excitation}
+\end{figure}
+
+\emph{Diagnostic 2} finds quadratic damping dominant, with $\Delta R^2=+0.20$ over the linear fit, $d_1=-0.015$ and $d_2=0.448$~m$^{-1}$ on the coasting segments. The two-phase identification returns $d_2=0.438$~m$^{-1}$ from the same segments, a weak consistency check rather than an independent one.
+
+\emph{Diagnostic 3} finds rudder-induced surge drag negligible, with a correlation of $r=-0.08$ between $\delta^2$ and the surge residual. The coupling term is not warranted, which supports the decoupled channel structure that Levels~1 and~2 assume.
+
+\emph{Diagnostic 4} is reported in Fig.~\ref{fig:diagnostic4}, computed with $\lambda=1.0$~s, and returns an interval rather than a threshold. Robust stability fails below $v_0=0.35$~m/s, a bound with the closed form $v_{\text{lo}}=k_T/(4d_2K_v)$, independent of $\lambda$ because $|T|\leq1$ places the supremum of $\ell|T|$ at DC. The mechanism is the $1/v_0$ singularity in \eqref{eq:lin}: quadratic drag provides no linear damping at zero speed. At the upper end the stability test never fails, and at 2.9~m/s the model error is still within budget at $\|\ell T\|_\infty=0.76$. What fails is performance: the Level-1 compensator on the Level-2 plant retains only 20\% of its intended bandwidth at 2.9~m/s, crossing 50\% at $v_{\text{hi}}=1.28$~m/s. The two bounds are not equally firm. The lower follows from $\|\ell T\|_\infty=1$; the upper depends on choosing 50\% of design bandwidth as the point where degradation becomes unacceptable, which is a convention rather than a result, since a 70\% criterion moves it to 1.03~m/s and a 30\% criterion to 1.91~m/s. Both are insensitive to $\lambda$: sweeping it from 0.5 to 3~s moves $v_{\text{hi}}$ only between 1.23 and 1.61~m/s. For yaw, Level~2 linearizes to $0.771/(0.523s+1)$ against Level~1's $0.771/(0.471s+1)$, identical DC gain and an 11\% difference in time constant, giving $\|\ell T\|_\infty=0.034$. Level~2 buys nothing for yaw control across the whole envelope.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/combined_three_level.pdf}
+  \caption{All three levels simulated on the common 130~s trial. Level~3 begins after 2~s of measured lag initialization, so it scores 1{,}279 rows against 1{,}300 for Levels~1 and~2, and all three are scored on those same rows.}
+  \label{fig:combined}
+\end{figure*}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{What the Spectrum Reveals}
+
+For this vessel at the speeds tested, surge and yaw are weakly coupled, so decoupled SISO controllers are a defensible starting point. Quadratic drag is significant, so a speed-hold controller needs nonlinear feedforward and a purely linear one will show speed-dependent steady-state error. Whether the rudder gain scales with speed can be neither confirmed nor denied from the identification trial. No single model exposes all of this: Level~1 gives no reason to suspect the drag is quadratic, Level~2 does not reveal that its extra structure is inert for yaw, and Level~3 alone would report a plausible fit while saturating above the speeds its data covers.
+
+\subsection{Implications for Compensator Architecture}
+
+Level~1 supports a baseline PI with directly identified gains, valid over the interval Diagnostic~4 returns. Level~2 justifies nonlinear feedforward on the surge channel and locates the speed at which it becomes necessary; on yaw it changes nothing, so the added structure should not be carried into the design. Level~3 bounds what lies beyond the fixed architecture: the data supports a black-box simulator inside the slow region but not beyond it. None of the three delivers gains that work on the water without adjustment. What the spectrum buys is the loop structure, a simulation to verify it in, a basis for comparing variants and a tuning session that can be planned rather than improvised.
+
+\subsection{Structure, Sampling and Coverage}
+
+It is tempting to read Fig.~\ref{fig:combined} as showing that physical structure beats data volume, since Level~3 saw 28{,}023 training samples against the 1{,}300 used for Levels~1 and~2. There are two errors in this conclusion. First, the levels were fitted and scored under different protocols, so the comparison cannot separate structure from sampling.  Second, refitting Levels~1 and~2 on Level~3's own training partition and scoring all three on the same held-out segments reverses the ordering, giving $R^2$ of $+0.53$, $+0.64$ and $+0.84$ respectively. On equal terms the network is the better predictor. The defensible claim is about coverage rather than model class: a structured model does not need the trial to include any stretch where the vessel holds a constant speed at constant throttle, because setting $\dot v=0$ in \eqref{eq:l2surge} returns $v=\sqrt{k_T u/d_2}$ directly. The same theme runs through Diagnostic~1, where the trial could not separate $\delta$ from $\delta v$, and through Diagnostic~4, where sufficiency is a property of the operating point. 
+In each case the limit is the experiment rather than the model: a term the trial did not excite cannot be recovered from it, whatever structure is fitted.
+
+\subsection{Limitations}
+
+Levels~1 and~2 rest on a single trial covering 0--2.9~m/s and throttle to 39\%, so the identified parameters are not a characterization across the envelope, and Diagnostic~4 inherits that limitation. The common-trial comparison rests on one 130~s record, enough to demonstrate the behavior but not to quantify how often it occurs. Level~3's corpus is restricted to the slow operating region by construction, leaving the planing transition for future work, and with a configured cruise speed of 5~m/s no level is characterized over the upper half of the intended range.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+\label{sec:conclusion}
+
+We have presented a three-level model spectrum for small underactuated USVs, identified from field trials and posed throughout against one concrete question: what does a practitioner need in order to design, simulate and tune the speed and yaw-rate loops of an autopilot? Taken together the three levels are more useful for that purpose than any one of them alone. The margin-based test converts Skelton's qualitative criterion into a computed interval, returning $[0.35, 1.28]$~m/s for the surge channel and reporting that the same test is satisfied everywhere on the yaw channel, where the added Level-2 structure is inert. The black-box level is a serviceable simulator inside the region its data covers and unreliable outside it, which is the practical sense in which the simpler levels remain necessary.
+
+Future work runs in three directions. The first is data. To mitigate collinear regressors, rudder sweeps at separated fixed speeds, and sustained running above the slow-region speed cap, which is what would lift the surge saturation that costs Level~3 half its error on the present trial. The second is a stronger basis for cross-level comparison, since the present common trial is a single record and a multi-trial evaluation set would let the comparison be quantified rather than demonstrated; the sensitivity of each level to training-set size belongs here too. The third is to treat the robustness margin as a formal sufficiency criterion across the spectrum, computing for each design decision the level at which further fidelity is provably inert, replacing expert judgment with a computable bound on how much model a given autopilot loop requires.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
