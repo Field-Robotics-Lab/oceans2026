@@ -1,0 +1,234 @@
+% ============================================================================
+%  paper_math.tex — every model and diagnostic expression from the paper,
+%  in display form, for copy-pasting into slides.
+%
+%  Derived from paper_extended.tex. Nothing here is numbered or labelled, so
+%  each block can be lifted on its own. Compile to check rendering:
+%      pdflatex paper_math.tex
+% ============================================================================
+
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{parskip}
+
+\begin{document}
+\begin{center}\Large\bfseries Model and diagnostic expressions\end{center}
+\vspace{1em}
+
+% ============================================================================
+\section*{Level 1 — first-order linear SISO}
+
+% general form
+\[
+G_v(s) = \frac{K_v}{\tau_v s + 1},
+\qquad
+G_r(s) = \frac{K_r}{\tau_r s + 1}
+\]
+
+% the discrete model actually fitted
+\[
+y(k) = a_1\,y(k-1) + b_1\,u(k-1)
+\]
+
+% identified values
+\[
+G_v(s) = \frac{6.42}{1.95\,s + 1},
+\qquad
+G_r(s) = \frac{0.771}{0.471\,s + 1}
+\]
+
+% PI gains by internal model control, lambda = desired closed-loop time constant
+\[
+C(s) = \frac{\tau_v s + 1}{K_v \lambda s},
+\qquad
+k_p = \frac{\tau}{K\lambda},
+\qquad
+k_i = \frac{1}{K\lambda}
+\]
+
+% steady state
+\[
+v_{\mathrm{eq}} = K_v\,u
+\]
+
+% ============================================================================
+\section*{Level 2 — nonlinear state space with quadratic drag}
+
+% general form
+\begin{align*}
+\dot v &= k_T\,u - d_2\,v|v| \\
+\dot r &= k_\delta\,\delta - d_r\,r
+\end{align*}
+
+% identified values
+\begin{align*}
+\dot v &= 3.963\,u - 0.438\,v|v| \\
+\dot r &= 1.474\,\delta - 1.912\,r
+\end{align*}
+
+% coasting, u = 0: the phase that identifies the drag coefficient alone
+\[
+\dot v = -\,d_2\,v|v|
+\]
+
+% steady state, from setting v-dot to zero
+\[
+v_{\mathrm{eq}} = \sqrt{\frac{k_T\,u}{d_2}}
+\]
+
+% yaw channel, linearized for comparison with Level 1
+\[
+\frac{r}{\delta} = \frac{0.771}{0.523\,s + 1}
+\qquad\text{against Level 1's}\qquad
+\frac{0.771}{0.471\,s + 1}
+\]
+
+% ============================================================================
+\section*{Level 3 — residual NARX}
+
+% tap sets
+\[
+\mathcal{S} = \{0,1,2,5\},
+\qquad
+\mathcal{T} = \{0,1,2,5,10,20\},
+\qquad
+\mathcal{R} = \{0,1,2,5,10\}
+\]
+
+% state vector
+\[
+x(k) = \begin{bmatrix} v(k) \\ r(k) \end{bmatrix}
+\]
+
+% regressor
+\[
+\varphi(k) = \bigl[\,x(k-i)_{i\in\mathcal{S}},\;\;
+                    u(k-j)_{j\in\mathcal{T}},\;\;
+                    \delta(k-l)_{l\in\mathcal{R}}\,\bigr]^{\top}
+\;\in\; \mathbb{R}^{19}
+\]
+
+% state update, residual form
+\[
+x(k+1) = x(k) + f_\theta\bigl(\varphi(k)\bigr)
+\]
+
+% the learned map
+\[
+f_\theta(\varphi) = W_2 \tanh\bigl(W_1 \varphi + b_1\bigr) + b_2
+\]
+
+% dimensions
+\[
+W_1 \in \mathbb{R}^{64\times 19},
+\qquad
+W_2 \in \mathbb{R}^{2\times 64},
+\qquad
+1{,}410 \text{ parameters}
+\]
+
+% ============================================================================
+\section*{The three levels side by side}
+
+% one slide: same input-output form, progressively freer map
+\begin{align*}
+\text{Level 1:}\quad & y(k+1) = a_1\,y(k) + b_1\,u(k) \\[4pt]
+\text{Level 2:}\quad & \dot v = k_T\,u - d_2\,v|v| \\[4pt]
+\text{Level 3:}\quad & x(k+1) = x(k) + f_\theta\bigl(\varphi(k)\bigr)
+\end{align*}
+
+% and their equilibria, which is where they differ in simulation
+\begin{align*}
+\text{Level 1:}\quad & v_{\mathrm{eq}} = K_v\,u \\[4pt]
+\text{Level 2:}\quad & v_{\mathrm{eq}} = \sqrt{k_T u / d_2} \\[4pt]
+\text{Level 3:}\quad & v_{\mathrm{eq}} \;\text{ wherever }\; f_\theta = 0 \;\text{ — learned, not derived}
+\end{align*}
+
+% ============================================================================
+\section*{Diagnostic 1 — speed-dependent rudder gain}
+
+% the alternative tested
+\[
+\dot r = k_\delta\,v\,\delta - d_r\,r
+\qquad\text{against}\qquad
+\dot r = k_\delta\,\delta - d_r\,r
+\]
+
+% what Nomoto scaling actually predicts
+\[
+k_\delta \propto v^2,
+\qquad
+d_r \propto v
+\]
+
+% ============================================================================
+\section*{Diagnostic 3 — rudder-induced surge drag}
+
+% correlation tested against the Level-2 surge residual
+\[
+\mathrm{corr}\bigl(\delta^2,\; v - \hat v_{\text{Level 2}}\bigr) = -0.08
+\]
+
+% ============================================================================
+\section*{Diagnostic 4 — margin-based sufficiency}
+
+% nominal compensator from Level 1 alone
+\[
+C(s) = \frac{\tau_v s + 1}{K_v \lambda s}
+\qquad\Longrightarrow\qquad
+L(s) = \frac{1}{\lambda s},
+\qquad
+T(s) = \frac{1}{\lambda s + 1}
+\]
+
+% Level 2 linearized about a forward speed
+\[
+G_2(s,v_0) = \frac{K_2(v_0)}{\tau_2(v_0)\,s + 1},
+\qquad
+\tau_2 = \frac{1}{2 d_2 v_0},
+\qquad
+K_2 = \frac{k_T}{2 d_2 v_0}
+\]
+
+% multiplicative model error
+\[
+\ell(\omega, v_0) = \left| \frac{G_2(j\omega, v_0)}{G_1(j\omega)} - 1 \right|
+\]
+
+% robust stability test
+\[
+\|\ell\,T\|_\infty < 1
+\]
+
+% lower bound, closed form and independent of lambda
+\[
+v_{\mathrm{lo}} = \frac{k_T}{4\,d_2\,K_v} = 0.35~\mathrm{m/s}
+\]
+
+% high-frequency limit of the model error, independent of operating point
+\[
+\lim_{\omega\to\infty} \left|\frac{G_2}{G_1}\right| = \frac{k_T \tau_v}{K_v} = 1.20
+\]
+
+% performance criterion at the upper end
+\[
+\frac{\text{achieved bandwidth}}{\text{design bandwidth}}
+\;\;\text{falls to } 0.5 \text{ at } v_{\mathrm{hi}} = 1.28~\mathrm{m/s}
+\]
+
+% the result
+\[
+\text{Level 1 sufficient over } \; [\,0.35,\; 1.28\,]~\mathrm{m/s}
+\]
+
+% ============================================================================
+\section*{Evaluation metric}
+
+% simulation fit, per channel
+\[
+R^2 = 1 - \frac{\sum_k \bigl(y_k - \hat y_k\bigr)^2}
+                {\sum_k \bigl(y_k - \bar y\bigr)^2}
+\]
+
+\end{document}
